@@ -3,16 +3,16 @@ package http
 import "strings"
 
 type VoterInfoResponse struct {
-	Kind             string            `json:"kind"`
-	Election         Election          `json:"election"`
-	OtherElections   []Election        `json:"otherElections"`
-	NormalizedInput  Address           `json:"normalizedInput"`
-	PollingLocations []PollingLocation `json:"pollingLocations"`
-	EarlyVoteSites   []VoteSite        `json:"earlyVoteSites"`
-	DropOffLocations []VoteSite        `json:"dropOffLocations"`
-	Contests         []Contest         `json:"contests"`
-	State            []State           `json:"state"`
-	MailOnly         bool              `json:"mailOnly"`
+	Kind             string         `json:"kind"`
+	Election         Election       `json:"election"`
+	OtherElections   []Election     `json:"otherElections"`
+	NormalizedInput  Address        `json:"normalizedInput"`
+	PollingLocations []PollingPlace `json:"pollingLocations"`
+	EarlyVoteSites   []PollingPlace `json:"earlyVoteSites"`
+	DropOffLocations []PollingPlace `json:"dropOffLocations"`
+	Contests         []Contest      `json:"contests"`
+	State            []State        `json:"state"`
+	MailOnly         bool           `json:"mailOnly"`
 }
 
 // Election Resource
@@ -82,22 +82,8 @@ func (a Address) String() string {
 	return b.String()
 }
 
-// PollingLocation Resource
-type PollingLocation struct {
-	Address       Address  `json:"address"`
-	Notes         string   `json:"notes"`
-	PollingHours  string   `json:"pollingHours"`
-	Name          string   `json:"name"`
-	VoterServices string   `json:"voterServices"`
-	StartDate     string   `json:"startDate"`
-	EndDate       string   `json:"endDate"`
-	Latitude      float64  `json:"latitude"`
-	Longitude     float64  `json:"longitude"`
-	Sources       []Source `json:"sources"`
-}
-
-// VoteSite Resource (used for earlyVoteSites and dropOffLocations)
-type VoteSite struct {
+// PollingPlace Resource (used for pollingLocations, earlyVoteSites, and dropOffLocations)
+type PollingPlace struct {
 	Address       Address  `json:"address"`
 	Notes         string   `json:"notes"`
 	PollingHours  string   `json:"pollingHours"`

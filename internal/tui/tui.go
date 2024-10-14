@@ -23,7 +23,7 @@ type model struct {
 	spinner spinner.Model
 
 	// State
-	state appState
+	state page
 
 	// Response
 	electionData *handler.VoterInfoResponse
@@ -34,13 +34,13 @@ type model struct {
 	subtitleStyle lipgloss.Style
 }
 
-type appState int
+type page int
 
 const (
-	inputState appState = iota
-	loadingState
-	reinputConfirmationState
-	resultState
+	inputPage page = iota
+	loadingPage
+	reinputConfirmationPage
+	pollingLocationPage
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -79,7 +79,7 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		form:          form,
 		style:         style,
 		spinner:       spin,
-		state:         inputState,
+		state:         inputPage,
 		headerStyle:   headerStyle,   // Assign the header style
 		subtitleStyle: subtitleStyle, // Assign the subtitle style
 	}
@@ -100,7 +100,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch m.state {
-	case inputState:
+	case inputPage:
 		if m.form != nil {
 			f, cmd := m.form.Update(msg)
 			m.form = f.(*huh.Form)
@@ -109,7 +109,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.form.State == huh.StateCompleted {
 			// Get the user input and switch to loading state
 			address := m.form.GetString("address")
-			m.state = loadingState
+			m.state = loadingPage
 
 			// Return the CheckServer call as a tea.Cmd
 			return m, tea.Batch(
@@ -121,13 +121,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if m.form.State == huh.StateAborted {
 			return m, tea.Quit
 		}
-	case loadingState:
+	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
 		case handler.VoterInfoResponse:
 			// Save the response and move to the result state
 			m.electionData = &msg
-			m.state = resultState
+			m.state = pollingLocationPage
 			return m, nil
 		case spinner.TickMsg:
 			var cmd tea.Cmd
@@ -136,11 +136,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case utils.ErrMsg:
 			// Capture the error and transition to the reinputConfirmationState
 			m.err = msg.Err
-			m.state = reinputConfirmationState
+			m.state = reinputConfirmationPage
 			return m, nil
 		}
 
-	case reinputConfirmationState:
+	case reinputConfirmationPage:
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
 			// Reset the form and return to the input state
@@ -151,11 +151,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			m.form.Init()
 			m.err = nil
-			m.state = inputState
+			m.state = inputPage
 			return m, nil
 		}
 
-	case resultState:
+	case pollingLocationPage:
 		// Allow the user to exit by pressing "q" or "ctrl+c"
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
 			if keyMsg.String() == "q" || keyMsg.Type == tea.KeyCtrlC {
@@ -169,14 +169,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	switch m.state {
-	case inputState:
+	case inputPage:
 		return m.viewInput()
-	case loadingState:
+	case loadingPage:
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
-	case reinputConfirmationState:
+	case reinputConfirmationPage:
 		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
-	case resultState:
-		return m.viewResult()
+	case pollingLocationPage:
+		return m.viewPollingPlaces()
 	}
 	return ""
 }
@@ -187,7 +187,7 @@ func (m model) viewInput() string {
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
 }
 
-func (m model) viewResult() string {
+func (m model) viewPollingPlaces() string {
 	headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
 	header := m.headerStyle.Render(headerText)
 	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
