@@ -1,5 +1,7 @@
 package http
 
+import "strings"
+
 type VoterInfoResponse struct {
 	Kind             string            `json:"kind"`
 	Election         Election          `json:"election"`
@@ -32,6 +34,54 @@ type Address struct {
 	Zip          string `json:"zip"`
 }
 
+func (a Address) String() string {
+	var b strings.Builder
+	separator := ""
+
+	if a.LocationName != "" {
+		b.WriteString(a.LocationName)
+		separator = ", "
+	}
+	if a.Line1 != "" {
+		b.WriteString(separator)
+		b.WriteString(a.Line1)
+		separator = ", "
+	}
+	if a.Line2 != "" {
+		b.WriteString(separator)
+		b.WriteString(a.Line2)
+	}
+	if a.Line3 != "" {
+		b.WriteString(separator)
+		b.WriteString(a.Line3)
+	}
+	if a.City != "" {
+		b.WriteString(separator)
+		b.WriteString(a.City)
+		separator = ", "
+	}
+	if a.State != "" {
+		b.WriteString(separator)
+		b.WriteString(a.State)
+	}
+	if a.Zip != "" {
+		// Add a space before the zip if there's a state present
+		if a.State != "" {
+			b.WriteString(" ")
+		} else {
+			b.WriteString(separator)
+		}
+		b.WriteString(a.Zip)
+	}
+
+	// If no components were written, return an empty string
+	if b.Len() == 0 {
+		return ""
+	}
+
+	return b.String()
+}
+
 // PollingLocation Resource
 type PollingLocation struct {
 	Address       Address  `json:"address"`
@@ -62,7 +112,7 @@ type VoteSite struct {
 
 // Contest Resource
 type Contest struct {
-	Type                       string      `json:"type"`
+	Type                       string      `json:"type"` // TODO: Convert to ENUM
 	PrimaryParty               string      `json:"primaryParty"`
 	ElectorateSpecifications   string      `json:"electorateSpecifications"`
 	Special                    string      `json:"special"`
@@ -71,9 +121,9 @@ type Contest struct {
 	Level                      []string    `json:"level"`
 	Roles                      []string    `json:"roles"`
 	District                   District    `json:"district"`
-	NumberElected              string      `json:"numberElected"` // TODO: Change to int
-	NumberVotingFor            string      `json:"numberVotingFor"`
-	BallotPlacement            string      `json:"ballotPlacement"`
+	NumberElected              string      `json:"numberElected"`   // Schema says long, but API returns a string
+	NumberVotingFor            string      `json:"numberVotingFor"` // Schema says long, but API returns a string
+	BallotPlacement            string      `json:"ballotPlacement"` // Schema says long, but API returns a string
 	Candidates                 []Candidate `json:"candidates"`
 	ReferendumTitle            string      `json:"referendumTitle"`
 	ReferendumSubtitle         string      `json:"referendumSubtitle"`
