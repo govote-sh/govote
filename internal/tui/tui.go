@@ -40,7 +40,7 @@ const (
 	inputState appState = iota
 	loadingState
 	reinputConfirmationState
-	resultState
+	pollingLocationPage
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -127,7 +127,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case handler.VoterInfoResponse:
 			// Save the response and move to the result state
 			m.electionData = &msg
-			m.state = resultState
+			m.state = pollingLocationPage
 			return m, nil
 		case spinner.TickMsg:
 			var cmd tea.Cmd
@@ -155,7 +155,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-	case resultState:
+	case pollingLocationPage:
 		// Allow the user to exit by pressing "q" or "ctrl+c"
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
 			if keyMsg.String() == "q" || keyMsg.Type == tea.KeyCtrlC {
@@ -175,7 +175,7 @@ func (m model) View() string {
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
 	case reinputConfirmationState:
 		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
-	case resultState:
+	case pollingLocationPage:
 		return m.viewResult()
 	}
 	return ""
