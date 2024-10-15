@@ -6,6 +6,7 @@ import (
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
@@ -32,6 +33,13 @@ type model struct {
 	// Header and subtitle styles
 	headerStyle   lipgloss.Style
 	subtitleStyle lipgloss.Style
+
+	// Lists
+	pollingLocationList        list.Model
+	pollingLocationListCreated bool
+
+	// Track window size
+	width, height int
 }
 
 type appState int
@@ -44,6 +52,8 @@ const (
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, _ := s.Pty()
+
 	// Set up the huh form for user input
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -76,12 +86,15 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	// Create the model with the form, style, and spinner
 	m := model{
-		form:          form,
-		style:         style,
-		spinner:       spin,
-		state:         inputState,
-		headerStyle:   headerStyle,   // Assign the header style
-		subtitleStyle: subtitleStyle, // Assign the subtitle style
+		form:                       form,
+		style:                      style,
+		spinner:                    spin,
+		state:                      inputState,
+		headerStyle:                headerStyle,   // Assign the header style
+		subtitleStyle:              subtitleStyle, // Assign the subtitle style
+		width:                      pty.Window.Width,
+		height:                     pty.Window.Height,
+		pollingLocationListCreated: false,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -99,9 +112,27 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// Capture the window size
+		m.width = msg.Width
+		m.height = msg.Height
+
+		// If the list is created, adjust its size accordingly
+		if m.pollingLocationListCreated {
+			m.pollingLocationList.SetWidth(m.width)
+			m.pollingLocationList.SetHeight(m.height)
+		} else if m.state == pollingLocationPage {
+			// Initialize the list if not done yet
+			m.initList(m.width, m.height)
+		}
+		return m, nil
+	}
+
 	switch m.state {
 	case inputState:
 		if m.form != nil {
+			// Update the form and handle form completion or exit
 			f, cmd := m.form.Update(msg)
 			m.form = f.(*huh.Form)
 			cmds = append(cmds, cmd)
@@ -121,20 +152,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if m.form.State == huh.StateAborted {
 			return m, tea.Quit
 		}
+
 	case loadingState:
 		// Handle the server response
 		switch msg := msg.(type) {
 		case handler.VoterInfoResponse:
-			// Save the response and move to the result state
+			// Save the response and move to the pollingLocationPage state
 			m.electionData = &msg
 			m.state = pollingLocationPage
+
+			// Initialize the list if window size information is available
+			if m.width != 0 && m.height != 0 {
+				m.initList(m.width, m.height)
+			}
 			return m, nil
+
 		case spinner.TickMsg:
 			var cmd tea.Cmd
 			m.spinner, cmd = m.spinner.Update(msg)
-			return m, cmd
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+
 		case utils.ErrMsg:
-			// Capture the error and transition to the reinputConfirmationState
+			// Capture the error and transition to reinputConfirmationState
 			m.err = msg.Err
 			m.state = reinputConfirmationState
 			return m, nil
@@ -143,7 +183,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case reinputConfirmationState:
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
-			// Reset the form and return to the input state
+			// Reset the form and return to input state
 			m.form = huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().Title("Address").Key("address"),
@@ -156,6 +196,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case pollingLocationPage:
+		// Handle list updates
+		if m.pollingLocationListCreated {
+			var cmd tea.Cmd
+			m.pollingLocationList, cmd = m.pollingLocationList.Update(msg)
+			cmds = append(cmds, cmd)
+		}
+
 		// Allow the user to exit by pressing "q" or "ctrl+c"
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
 			if keyMsg.String() == "q" || keyMsg.Type == tea.KeyCtrlC {
@@ -192,8 +239,42 @@ func (m model) viewResult() string {
 	header := m.headerStyle.Render(headerText)
 	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
 	subtitle := m.headerStyle.Render(subtitleText)
-	if m.electionData != nil {
-		return fmt.Sprintf("%s\n%s\nUpcoming election: %s on %s\n\n", header, subtitle, m.electionData.Election.Name, m.electionData.Election.ElectionDay)
+	// if m.electionData != nil {
+	// 	return fmt.Sprintf("%s\n%s\nUpcoming election: %s on %s\n\n", header, subtitle, m.electionData.Election.Name, m.electionData.Election.ElectionDay)
+	// }
+	// return "No election data available." // Transition to Reinput confirmation state? or catch error?
+	if !m.pollingLocationListCreated {
+		return "building list..."
 	}
-	return "No election data available." // Transition to Reinput confirmation state? or catch error?
+	return fmt.Sprintf("%s\n%s\n%s", header, subtitle, m.pollingLocationList.View())
+}
+
+func (m *model) initList(width, height int) {
+	if m.electionData == nil {
+		fmt.Println("electionData is nil")
+		return
+	}
+
+	// Check if PollingLocations is nil or empty
+	if m.electionData.PollingLocations == nil || len(m.electionData.PollingLocations) == 0 {
+		fmt.Println("PollingLocations is nil or empty")
+		return
+	}
+
+	// Convert []PollingPlace to []list.Item
+	var items []list.Item
+	for _, pollingPlace := range m.electionData.EarlyVoteSites {
+		println("filter val: " + pollingPlace.FilterValue())
+		println("title: " + pollingPlace.Title())
+		println("desc: " + pollingPlace.Description())
+		items = append(items, pollingPlace)
+	}
+
+	// Initialize the list with the converted items and dynamic dimensions
+	println(width)
+	println(height)
+	m.pollingLocationList = list.New(items, list.NewDefaultDelegate(), width, height)
+	m.pollingLocationList.Title = "Polling Locations"
+	fmt.Println("Polling location list initialized successfully")
+	m.pollingLocationListCreated = true
 }

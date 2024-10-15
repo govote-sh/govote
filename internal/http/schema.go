@@ -96,6 +96,30 @@ type PollingPlace struct {
 	Sources       []Source `json:"sources"`
 }
 
+func (p PollingPlace) FilterValue() string {
+	if p.Name != "" {
+		return p.Name
+	} else if p.Address.LocationName != "" {
+		return p.Address.LocationName
+	} else {
+		return p.Address.String()
+	}
+}
+
+func (p PollingPlace) Title() string {
+	if p.Name != "" {
+		return p.Name
+	} else if p.Address.LocationName != "" {
+		return p.Address.LocationName
+	} else {
+		return p.Address.String()
+	}
+}
+
+func (p PollingPlace) Description() string {
+	return p.Address.String()
+}
+
 // Contest Resource
 type Contest struct {
 	Type                       string      `json:"type"` // TODO: Convert to ENUM
