@@ -21,10 +21,11 @@ type model struct {
 
 	// Style & Bubbles
 	style   lipgloss.Style
+	render  *lipgloss.Renderer
 	spinner spinner.Model
 
-	// State
-	state appState
+	// Page
+	page page
 
 	// Response
 	electionData *handler.VoterInfoResponse
@@ -38,17 +39,23 @@ type model struct {
 	pollingLocationList        list.Model
 	pollingLocationListCreated bool
 
+	hasMenu bool
+
 	// Track window size
 	width, height int
 }
 
-type appState int
+type page int
 
 const (
-	inputState appState = iota
-	loadingState
-	reinputConfirmationState
+	inputPage page = iota
+	loadingPage
+	reinputConfirmationPage
 	pollingLocationPage
+	earlyVotePage
+	ballotDropOffPage
+	contestsPage
+	registerPage
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -61,24 +68,19 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		),
 	)
 
+	r := bubbletea.MakeRenderer(s)
+
 	// Define the styles for the header and subtitle
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := r.NewStyle().
 		Foreground(lipgloss.Color("205")).
 		Align(lipgloss.Center).
 		Bold(true).
 		Padding(0, 1)
 
-	subtitleStyle := lipgloss.NewStyle().
+	subtitleStyle := r.NewStyle().
 		Foreground(lipgloss.Color("240")).
 		Align(lipgloss.Center).
 		Padding(0, 1)
-
-	r := bubbletea.MakeRenderer(s)
-	style := r.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 2).
-		BorderForeground(lipgloss.Color("#444444")).
-		Foreground(lipgloss.Color("#7571F9"))
 
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
@@ -87,14 +89,15 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	// Create the model with the form, style, and spinner
 	m := model{
 		form:                       form,
-		style:                      style,
 		spinner:                    spin,
-		state:                      inputState,
+		page:                       inputPage,
 		headerStyle:                headerStyle,   // Assign the header style
 		subtitleStyle:              subtitleStyle, // Assign the subtitle style
 		width:                      pty.Window.Width,
 		height:                     pty.Window.Height,
 		pollingLocationListCreated: false,
+		render:                     r,
+		hasMenu:                    false,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -103,14 +106,13 @@ func (m model) Init() tea.Cmd {
 	if m.form == nil {
 		return nil
 	}
-	return tea.Batch(
-		m.form.Init(),  // Initialize the form
-		m.spinner.Tick, // Pass the command to start the spinner ticking
-	)
+	return m.form.Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+	var headerCmd tea.Cmd
+	m, headerCmd = m.HeaderUpdate(msg)
+	cmds := []tea.Cmd{headerCmd}
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -122,15 +124,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.pollingLocationListCreated {
 			m.pollingLocationList.SetWidth(m.width)
 			m.pollingLocationList.SetHeight(m.height)
-		} else if m.state == pollingLocationPage {
+		} else if m.page == pollingLocationPage {
 			// Initialize the list if not done yet
 			m.initList(m.width, m.height)
 		}
 		return m, nil
 	}
 
-	switch m.state {
-	case inputState:
+	switch m.page {
+	case inputPage:
 		if m.form != nil {
 			// Update the form and handle form completion or exit
 			f, cmd := m.form.Update(msg)
@@ -140,7 +142,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.form.State == huh.StateCompleted {
 			// Get the user input and switch to loading state
 			address := m.form.GetString("address")
-			m.state = loadingState
+			m.page = loadingPage
 
 			// Return the CheckServer call as a tea.Cmd
 			return m, tea.Batch(
@@ -153,13 +155,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-	case loadingState:
+	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
 		case handler.VoterInfoResponse:
 			// Save the response and move to the pollingLocationPage state
 			m.electionData = &msg
-			m.state = pollingLocationPage
+			m.page = pollingLocationPage
+			m.hasMenu = true
 
 			// Initialize the list if window size information is available
 			if m.width != 0 && m.height != 0 {
@@ -176,11 +179,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case utils.ErrMsg:
 			// Capture the error and transition to reinputConfirmationState
 			m.err = msg.Err
-			m.state = reinputConfirmationState
+			m.page = reinputConfirmationPage
 			return m, nil
 		}
 
-	case reinputConfirmationState:
+	case reinputConfirmationPage:
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
 			// Reset the form and return to input state
@@ -191,7 +194,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			m.form.Init()
 			m.err = nil
-			m.state = inputState
+			m.page = inputPage
 			return m, nil
 		}
 
@@ -209,21 +212,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
+	case contestsPage:
+		// Handle list updates
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
-	switch m.state {
-	case inputState:
+	switch m.page {
+	case inputPage:
 		return m.viewInput()
-	case loadingState:
+	case loadingPage:
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
-	case reinputConfirmationState:
+	case reinputConfirmationPage:
 		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
 	case pollingLocationPage:
 		return m.viewResult()
+	case contestsPage:
+		return "Contests"
+	case registerPage:
+		return "Register"
 	}
 	return ""
 }
@@ -235,19 +244,45 @@ func (m model) viewInput() string {
 }
 
 func (m model) viewResult() string {
-	headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	header := m.headerStyle.Render(headerText)
-	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
-	subtitle := m.headerStyle.Render(subtitleText)
-	// if m.electionData != nil {
-	// 	return fmt.Sprintf("%s\n%s\nUpcoming election: %s on %s\n\n", header, subtitle, m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	// }
-	// return "No election data available." // Transition to Reinput confirmation state? or catch error?
+	// headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
+	// header := m.headerStyle.Render(headerText)
+	// subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
+	// subtitle := m.headerStyle.MarginBottom(1).Render(subtitleText)
 	if !m.pollingLocationListCreated {
 		return "building list..."
 	}
-	return fmt.Sprintf("%s\n%s\n%s", header, subtitle, m.pollingLocationList.View())
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+		lipgloss.Top,
+		m.HeaderView(),
+		m.pollingLocationList.View(),
+	))
 }
+
+// func (m model) viewResult() string {
+// 	// Prepare the header and subtitle with updated styling
+// 	headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
+// 	header := m.headerStyle.Bold(true).Foreground(lipgloss.Color("212")).Render(headerText)
+
+// 	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
+// 	subtitle := m.subtitleStyle.Italic(true).Foreground(lipgloss.Color("240")).MarginBottom(2).Render(subtitleText)
+
+// 	// Ensure the list is ready, otherwise show a loading message
+// 	if !m.pollingLocationListCreated {
+// 		return m.render.NewStyle().Margin(2, 2).Render("Building list...")
+// 	}
+
+// 	// Combine the header, subtitle, and list with adequate padding/margin
+// 	return m.render.NewStyle().
+// 		Margin(0, 0).
+// 		MaxWidth(m.width).
+// 		MaxHeight(m.height).
+// 		Render(lipgloss.JoinVertical(
+// 			lipgloss.Top,
+// 			header,
+// 			subtitle,
+// 			m.pollingLocationList.View(),
+// 		))
+// }
 
 func (m *model) initList(width, height int) {
 	if m.electionData == nil {
@@ -264,17 +299,10 @@ func (m *model) initList(width, height int) {
 	// Convert []PollingPlace to []list.Item
 	var items []list.Item
 	for _, pollingPlace := range m.electionData.EarlyVoteSites {
-		println("filter val: " + pollingPlace.FilterValue())
-		println("title: " + pollingPlace.Title())
-		println("desc: " + pollingPlace.Description())
 		items = append(items, pollingPlace)
 	}
 
-	// Initialize the list with the converted items and dynamic dimensions
-	println(width)
-	println(height)
 	m.pollingLocationList = list.New(items, list.NewDefaultDelegate(), width, height)
 	m.pollingLocationList.Title = "Polling Locations"
-	fmt.Println("Polling location list initialized successfully")
 	m.pollingLocationListCreated = true
 }
