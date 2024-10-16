@@ -17,15 +17,15 @@ func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
 		switch msg.String() {
 		// Or directly navigate to a specific tab
 		case "v":
-			m.page = pollingLocationPage
+			m.currPage = votePage
 		// case "e":
 		// 	m.page = earlyVotePage
 		// case "d":
 		// 	m.page = ballotDropOffPage
 		case "c":
-			m.page = contestsPage
+			m.currPage = contestsPage
 		case "r":
-			m.page = registerPage
+			m.currPage = registerPage
 		case "q": // Quit
 			return m, tea.Quit
 		}
@@ -46,8 +46,8 @@ func (m model) HeaderView() string {
 	register := fmt.Sprintf("%s %s", letterStyle("[R]"), inactiveTabStyle("Register"))
 
 	// Bold the active tab based on the current page
-	switch m.page {
-	case pollingLocationPage:
+	switch m.currPage {
+	case votePage:
 		electionDay = fmt.Sprintf("%s %s", letterStyle("[V]"), activeTabStyle("Vote"))
 	case contestsPage:
 		contests = fmt.Sprintf("%s %s", letterStyle("[C]"), activeTabStyle("Contests"))

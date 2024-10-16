@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish/bubbletea"
-	handler "github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/http"
 	"github.com/govote-sh/govote/internal/utils"
 )
 
@@ -25,10 +25,10 @@ type model struct {
 	spinner spinner.Model
 
 	// Page
-	page page
+	currPage page
 
 	// Response
-	electionData *handler.VoterInfoResponse
+	electionData *http.VoterInfoResponse
 	err          error
 
 	// Header and subtitle styles
@@ -38,6 +38,7 @@ type model struct {
 	// Lists
 	pollingLocationList        list.Model
 	pollingLocationListCreated bool
+	selectedPollingPlace       *http.PollingPlace
 
 	hasMenu bool
 
@@ -51,11 +52,12 @@ const (
 	inputPage page = iota
 	loadingPage
 	reinputConfirmationPage
-	pollingLocationPage
-	earlyVotePage
-	ballotDropOffPage
+	votePage
+	// earlyVotePage
+	// ballotDropOffPage
 	contestsPage
 	registerPage
+	pollingPlacePage
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -90,7 +92,7 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	m := model{
 		form:                       form,
 		spinner:                    spin,
-		page:                       inputPage,
+		currPage:                   inputPage,
 		headerStyle:                headerStyle,   // Assign the header style
 		subtitleStyle:              subtitleStyle, // Assign the subtitle style
 		width:                      pty.Window.Width,
@@ -124,14 +126,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.pollingLocationListCreated {
 			m.pollingLocationList.SetWidth(m.width)
 			m.pollingLocationList.SetHeight(m.height)
-		} else if m.page == pollingLocationPage {
+		} else if m.currPage == votePage {
 			// Initialize the list if not done yet
 			m.initList(m.width, m.height)
 		}
 		return m, nil
 	}
 
-	switch m.page {
+	switch m.currPage {
 	case inputPage:
 		if m.form != nil {
 			// Update the form and handle form completion or exit
@@ -142,13 +144,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.form.State == huh.StateCompleted {
 			// Get the user input and switch to loading state
 			address := m.form.GetString("address")
-			m.page = loadingPage
+			m.currPage = loadingPage
 
 			// Return the CheckServer call as a tea.Cmd
 			return m, tea.Batch(
 				m.spinner.Tick, // Start the spinner ticking
 				func() tea.Msg {
-					return handler.CheckServer(address)
+					return http.CheckServer(address)
 				},
 			)
 		} else if m.form.State == huh.StateAborted {
@@ -158,10 +160,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
-		case handler.VoterInfoResponse:
-			// Save the response and move to the pollingLocationPage state
+		case http.VoterInfoResponse:
+			// Save the response and move to the votePage
 			m.electionData = &msg
-			m.page = pollingLocationPage
+			m.currPage = votePage
 			m.hasMenu = true
 
 			// Initialize the list if window size information is available
@@ -179,7 +181,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case utils.ErrMsg:
 			// Capture the error and transition to reinputConfirmationState
 			m.err = msg.Err
-			m.page = reinputConfirmationPage
+			m.currPage = reinputConfirmationPage
 			return m, nil
 		}
 
@@ -194,24 +196,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			m.form.Init()
 			m.err = nil
-			m.page = inputPage
+			m.currPage = inputPage
 			return m, nil
 		}
 
-	case pollingLocationPage:
-		// Handle list updates
-		if m.pollingLocationListCreated {
-			var cmd tea.Cmd
-			m.pollingLocationList, cmd = m.pollingLocationList.Update(msg)
-			cmds = append(cmds, cmd)
-		}
-
-		// Allow the user to exit by pressing "q" or "ctrl+c"
-		if keyMsg, ok := msg.(tea.KeyMsg); ok {
-			if keyMsg.String() == "q" || keyMsg.Type == tea.KeyCtrlC {
-				return m, tea.Quit
-			}
-		}
+	case votePage:
+		return m.UpdateVote(msg)
 	case contestsPage:
 		// Handle list updates
 	}
@@ -220,19 +210,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	switch m.page {
+	switch m.currPage {
 	case inputPage:
 		return m.viewInput()
 	case loadingPage:
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
 	case reinputConfirmationPage:
 		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
-	case pollingLocationPage:
-		return m.viewResult()
+	case votePage:
+		return m.viewVote()
 	case contestsPage:
 		return m.viewContests()
 	case registerPage:
 		return m.viewRegister()
+	case pollingPlacePage:
+		return m.viewPollingPlace()
 	}
 	return ""
 }
@@ -241,21 +233,6 @@ func (m model) viewInput() string {
 	header := m.headerStyle.Render("Welcome to govote.sh!")
 	subtitle := m.subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
-}
-
-func (m model) viewResult() string {
-	// headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	// header := m.headerStyle.Render(headerText)
-	// subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
-	// subtitle := m.headerStyle.MarginBottom(1).Render(subtitleText)
-	if !m.pollingLocationListCreated {
-		return "building list..."
-	}
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
-		lipgloss.Top,
-		m.HeaderView(),
-		m.pollingLocationList.View(),
-	))
 }
 
 func (m model) viewContests() string {
@@ -272,6 +249,17 @@ func (m model) viewRegister() string {
 		m.HeaderView(),
 		"Register",
 	))
+}
+
+func (m model) viewPollingPlace() string {
+	if m.selectedPollingPlace == nil {
+		return "No polling place selected."
+	}
+
+	// Display placeholder for polling place details
+	return fmt.Sprintf("Polling Place: %s\nAddress: %s\n",
+		m.selectedPollingPlace.Name,
+		m.selectedPollingPlace.Address.String())
 }
 
 // refactor: take in a List struct (list and createdBool) and title
