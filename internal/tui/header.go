@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
+// TODO: Check if Filter is on in a polling list, if so then disable the keys to change pages
 func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
 	if !m.hasMenu {
 		return m, nil
@@ -18,10 +19,6 @@ func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
 		// Or directly navigate to a specific tab
 		case "v":
 			m.currPage = votePage
-		// case "e":
-		// 	m.page = earlyVotePage
-		// case "d":
-		// 	m.page = ballotDropOffPage
 		case "c":
 			m.currPage = contestsPage
 		case "r":
