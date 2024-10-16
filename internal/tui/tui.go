@@ -230,9 +230,9 @@ func (m model) View() string {
 	case pollingLocationPage:
 		return m.viewResult()
 	case contestsPage:
-		return "Contests"
+		return m.viewContests()
 	case registerPage:
-		return "Register"
+		return m.viewRegister()
 	}
 	return ""
 }
@@ -258,32 +258,23 @@ func (m model) viewResult() string {
 	))
 }
 
-// func (m model) viewResult() string {
-// 	// Prepare the header and subtitle with updated styling
-// 	headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-// 	header := m.headerStyle.Bold(true).Foreground(lipgloss.Color("212")).Render(headerText)
+func (m model) viewContests() string {
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+		lipgloss.Top,
+		m.HeaderView(),
+		"Contests",
+	))
+}
 
-// 	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
-// 	subtitle := m.subtitleStyle.Italic(true).Foreground(lipgloss.Color("240")).MarginBottom(2).Render(subtitleText)
+func (m model) viewRegister() string {
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+		lipgloss.Top,
+		m.HeaderView(),
+		"Register",
+	))
+}
 
-// 	// Ensure the list is ready, otherwise show a loading message
-// 	if !m.pollingLocationListCreated {
-// 		return m.render.NewStyle().Margin(2, 2).Render("Building list...")
-// 	}
-
-// 	// Combine the header, subtitle, and list with adequate padding/margin
-// 	return m.render.NewStyle().
-// 		Margin(0, 0).
-// 		MaxWidth(m.width).
-// 		MaxHeight(m.height).
-// 		Render(lipgloss.JoinVertical(
-// 			lipgloss.Top,
-// 			header,
-// 			subtitle,
-// 			m.pollingLocationList.View(),
-// 		))
-// }
-
+// refactor: take in a List struct (list and createdBool) and title
 func (m *model) initList(width, height int) {
 	if m.electionData == nil {
 		fmt.Println("electionData is nil")
