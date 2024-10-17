@@ -184,7 +184,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currPage = reinputConfirmationPage
 			return m, nil
 		}
-
 	case reinputConfirmationPage:
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
@@ -199,11 +198,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currPage = inputPage
 			return m, nil
 		}
-
 	case votePage:
 		return m.UpdateVote(msg)
-	case contestsPage:
-		// Handle list updates
+	// case contestsPage:
+	// case registerPage:
+	case pollingPlacePage:
+		return m.updatePollingPlace(msg)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -249,17 +249,6 @@ func (m model) viewRegister() string {
 		m.HeaderView(),
 		"Register",
 	))
-}
-
-func (m model) viewPollingPlace() string {
-	if m.selectedPollingPlace == nil {
-		return "No polling place selected."
-	}
-
-	// Display placeholder for polling place details
-	return fmt.Sprintf("Polling Place: %s\nAddress: %s\n",
-		m.selectedPollingPlace.Name,
-		m.selectedPollingPlace.Address.String())
 }
 
 // refactor: take in a List struct (list and createdBool) and title

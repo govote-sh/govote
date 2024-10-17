@@ -8,13 +8,6 @@ import (
 
 func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle list updates
-	if m.pollingLocationListCreated {
-		var cmd tea.Cmd
-		m.pollingLocationList, cmd = m.pollingLocationList.Update(msg)
-		if cmd != nil {
-			return m, cmd
-		}
-	}
 
 	// Allow the user to exit by pressing "q" or "ctrl+c"
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -22,6 +15,9 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
+			if m.pollingLocationListCreated && m.pollingLocationList.SettingFilter() {
+				break
+			}
 			selectedItem, ok := m.pollingLocationList.SelectedItem().(http.PollingPlace)
 			if ok {
 				// Move to the polling place detail page with the selected item
@@ -29,6 +25,14 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currPage = pollingPlacePage
 			}
 			return m, nil
+		}
+	}
+
+	if m.pollingLocationListCreated {
+		var cmd tea.Cmd
+		m.pollingLocationList, cmd = m.pollingLocationList.Update(msg)
+		if cmd != nil {
+			return m, cmd
 		}
 	}
 	return m, nil
