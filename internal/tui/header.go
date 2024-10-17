@@ -10,7 +10,7 @@ import (
 
 // TODO: Check if Filter is on in a polling list, if so then disable the keys to change pages
 func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
-	if !m.hasMenu {
+	if !m.hasMenu || m.pollingLocationList.SettingFilter() {
 		return m, nil
 	}
 	switch msg := msg.(type) {
@@ -38,6 +38,7 @@ func (m model) HeaderView() string {
 
 	// Define the tabs with letter indicators
 	title := activeTabStyle("govote.sh")
+	esc := fmt.Sprintf("%s %s", letterStyle("[ESC]"), inactiveTabStyle("Back"))
 	electionDay := fmt.Sprintf("%s %s", letterStyle("[V]"), inactiveTabStyle("Vote"))
 	contests := fmt.Sprintf("%s %s", letterStyle("[C]"), inactiveTabStyle("Contests"))
 	register := fmt.Sprintf("%s %s", letterStyle("[R]"), inactiveTabStyle("Register"))
@@ -54,7 +55,11 @@ func (m model) HeaderView() string {
 
 	// Combine the tabs and ensure proper padding to avoid the bar cutting off
 	var tabs []string
-	tabs = []string{title, electionDay, contests, register}
+	if m.currPage != pollingPlacePage {
+		tabs = []string{title, electionDay, contests, register}
+	} else {
+		tabs = []string{title, esc}
+	}
 	return table.New().
 		Border(lipgloss.NormalBorder()).
 		Row(tabs...).
