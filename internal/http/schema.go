@@ -1,6 +1,10 @@
 package http
 
-import "strings"
+import (
+	"fmt"
+	"net/url"
+	"strings"
+)
 
 type VoterInfoResponse struct {
 	Kind             string         `json:"kind"`
@@ -118,6 +122,13 @@ func (p PollingPlace) Title() string {
 
 func (p PollingPlace) Description() string {
 	return p.Address.String()
+}
+
+func (p PollingPlace) GetMapsUrl() (string, error) {
+	if p.Latitude == 0 || p.Longitude == 0 {
+		return "", fmt.Errorf("latitude or longitude is missing")
+	}
+	return "https://www.google.com/maps/search/?api=1&query=" + url.QueryEscape(fmt.Sprintf("%f,%f", p.Latitude, p.Longitude)), nil
 }
 
 // Contest Resource

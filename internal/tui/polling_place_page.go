@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -14,7 +15,8 @@ func (m model) viewPollingPlace() string {
 	if m.selectedPollingPlace == nil {
 		return "No polling place selected."
 	}
-	hoursTable := newPollingPlaceHoursTable(*m.selectedPollingPlace)
+
+	// Title and bold styles
 	titleStyle := m.render.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("205")).
@@ -22,15 +24,58 @@ func (m model) viewPollingPlace() string {
 		Padding(0, 1).
 		Render
 	boldStyle := m.render.NewStyle().Bold(true).Render
+
+	// Polling place title
 	title := titleStyle("Polling Place Details")
 
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
-		lipgloss.Top,
-		m.HeaderView(),
-		title,
-		boldStyle(m.selectedPollingPlace.Address.String()),
-		hoursTable.View(),
-	))
+	// Address
+	address := boldStyle(m.selectedPollingPlace.Address.String())
+
+	// Polling hours (using your existing table generation)
+	hoursTable := newPollingPlaceHoursTable(*m.selectedPollingPlace)
+
+	// Notes (if any)
+	var notes string
+	if m.selectedPollingPlace.Notes != "" {
+		notes = boldStyle("Notes: ") + m.selectedPollingPlace.Notes
+	}
+
+	// Voter services (if any)
+	var voterServices string
+	if m.selectedPollingPlace.VoterServices != "" {
+		voterServices = boldStyle("Voter Services: ") + m.selectedPollingPlace.VoterServices
+	}
+
+	// Start and end dates (if any)
+	var dates string
+	if m.selectedPollingPlace.StartDate != "" && m.selectedPollingPlace.EndDate != "" {
+		dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), m.selectedPollingPlace.StartDate, m.selectedPollingPlace.EndDate)
+	} else if m.selectedPollingPlace.StartDate != "" {
+		dates = boldStyle("Start Date: ") + m.selectedPollingPlace.StartDate
+	} else if m.selectedPollingPlace.EndDate != "" {
+		dates = boldStyle("End Date: ") + m.selectedPollingPlace.EndDate
+	}
+
+	// Latitude and Longitude (if any)
+	var coordinates string
+	if url, err := m.selectedPollingPlace.GetMapsUrl(); err == nil {
+		coordinates = boldStyle("Map link: ") + url
+	}
+
+	// Join everything vertically and render
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
+		lipgloss.JoinVertical(
+			lipgloss.Top,
+			m.HeaderView(),
+			title,
+			address,
+			hoursTable.View(),
+			notes,
+			voterServices,
+			dates,
+			coordinates,
+		),
+	)
 }
 
 func (m model) updatePollingPlace(msg tea.Msg) (tea.Model, tea.Cmd) {
