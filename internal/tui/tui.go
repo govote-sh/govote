@@ -6,12 +6,12 @@ import (
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
 
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/listManager"
 	"github.com/govote-sh/govote/internal/utils"
 )
 
@@ -20,7 +20,6 @@ type model struct {
 	form *huh.Form
 
 	// Style & Bubbles
-	style   lipgloss.Style
 	render  *lipgloss.Renderer
 	spinner spinner.Model
 
@@ -36,9 +35,8 @@ type model struct {
 	subtitleStyle lipgloss.Style
 
 	// Lists
-	pollingLocationList        list.Model
-	pollingLocationListCreated bool
-	selectedPollingPlace       *http.PollingPlace
+	selectedPollingPlace *http.PollingPlace
+	lm                   *listManager.ListManager
 
 	hasMenu bool
 
@@ -90,16 +88,15 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	// Create the model with the form, style, and spinner
 	m := model{
-		form:                       form,
-		spinner:                    spin,
-		currPage:                   inputPage,
-		headerStyle:                headerStyle,   // Assign the header style
-		subtitleStyle:              subtitleStyle, // Assign the subtitle style
-		width:                      pty.Window.Width,
-		height:                     pty.Window.Height,
-		pollingLocationListCreated: false,
-		render:                     r,
-		hasMenu:                    false,
+		form:          form,
+		spinner:       spin,
+		currPage:      inputPage,
+		headerStyle:   headerStyle,   // Assign the header style
+		subtitleStyle: subtitleStyle, // Assign the subtitle style
+		width:         pty.Window.Width,
+		height:        pty.Window.Height,
+		render:        r,
+		hasMenu:       false,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -123,12 +120,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		// If the list is created, adjust its size accordingly
-		if m.pollingLocationListCreated {
-			m.pollingLocationList.SetWidth(m.width)
-			m.pollingLocationList.SetHeight(m.height)
-		} else if m.currPage == votePage {
-			// Initialize the list if not done yet
-			m.initList(m.width, m.height)
+		if m.lm != nil {
+			m.lm.SetSize(m.width, m.height)
 		}
 		return m, nil
 	}
@@ -165,11 +158,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.electionData = &msg
 			m.currPage = votePage
 			m.hasMenu = true
+			m.lm = m.InitVotePageListManager()
 
-			// Initialize the list if window size information is available
-			if m.width != 0 && m.height != 0 {
-				m.initList(m.width, m.height)
-			}
 			return m, nil
 
 		case spinner.TickMsg:
@@ -249,28 +239,4 @@ func (m model) viewRegister() string {
 		m.HeaderView(),
 		"Register",
 	))
-}
-
-// refactor: take in a List struct (list and createdBool) and title
-func (m *model) initList(width, height int) {
-	if m.electionData == nil {
-		fmt.Println("electionData is nil")
-		return
-	}
-
-	// Check if PollingLocations is nil or empty
-	if m.electionData.PollingLocations == nil || len(m.electionData.PollingLocations) == 0 {
-		fmt.Println("PollingLocations is nil or empty")
-		return
-	}
-
-	// Convert []PollingPlace to []list.Item
-	var items []list.Item
-	for _, pollingPlace := range m.electionData.EarlyVoteSites {
-		items = append(items, pollingPlace)
-	}
-
-	m.pollingLocationList = list.New(items, list.NewDefaultDelegate(), width, height)
-	m.pollingLocationList.Title = "Polling Locations"
-	m.pollingLocationListCreated = true
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -83,7 +82,7 @@ func (m model) updatePollingPlace(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
 		case "esc":
-			if m.pollingLocationListCreated && m.pollingLocationList.IsFiltered() || m.pollingLocationList.FilterState() == list.Unfiltered {
+			if m.lm != nil && !m.lm.SettingFilter() {
 				m.currPage = votePage
 			}
 			return m, nil
