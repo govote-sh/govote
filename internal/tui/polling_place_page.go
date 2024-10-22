@@ -48,11 +48,13 @@ func (m model) viewPollingPlace() string {
 	// Start and end dates (if any)
 	var dates string
 	if m.selectedPollingPlace.StartDate != "" && m.selectedPollingPlace.EndDate != "" {
-		dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), m.selectedPollingPlace.StartDate, m.selectedPollingPlace.EndDate)
-	} else if m.selectedPollingPlace.StartDate != "" {
-		dates = boldStyle("Start Date: ") + m.selectedPollingPlace.StartDate
-	} else if m.selectedPollingPlace.EndDate != "" {
-		dates = boldStyle("End Date: ") + m.selectedPollingPlace.EndDate
+		if m.selectedPollingPlace.StartDate == m.selectedPollingPlace.EndDate {
+			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), m.selectedPollingPlace.StartDate)
+		} else {
+			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), m.selectedPollingPlace.StartDate, m.selectedPollingPlace.EndDate)
+		}
+	} else {
+		dates = ""
 	}
 
 	// Latitude and Longitude (if any)
