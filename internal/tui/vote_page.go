@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/api"
 	"github.com/govote-sh/govote/internal/listManager"
 )
 
@@ -20,7 +20,7 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.lm != nil && m.lm.SettingFilter() {
 				break
 			}
-			selectedItem, ok := m.lm.SelectedItem().(http.PollingPlace)
+			selectedItem, ok := m.lm.SelectedItem().(api.PollingPlace)
 			if ok {
 				// Move to the polling place detail page with the selected item
 				m.selectedPollingPlace = &selectedItem

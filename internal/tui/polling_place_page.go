@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/api"
 )
 
 func (m model) viewPollingPlace() string {
@@ -93,7 +93,7 @@ func (m model) updatePollingPlace(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func newPollingPlaceHoursTable(p http.PollingPlace) table.Model {
+func newPollingPlaceHoursTable(p api.PollingPlace) table.Model {
 	pollingHours := parsePollingHours(p.PollingHours)
 
 	// Define columns for the table

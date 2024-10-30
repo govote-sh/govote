@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish/bubbletea"
-	"github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/api"
 	"github.com/govote-sh/govote/internal/listManager"
 	"github.com/govote-sh/govote/internal/utils"
 )
@@ -27,15 +27,15 @@ type model struct {
 	currPage page
 
 	// Response
-	electionData *http.VoterInfoResponse
-	err          error
+	electionData *api.VoterInfoResponse
+	err          *utils.ErrMsg
 
 	// Header and subtitle styles
 	headerStyle   lipgloss.Style
 	subtitleStyle lipgloss.Style
 
 	// Lists
-	selectedPollingPlace *http.PollingPlace
+	selectedPollingPlace *api.PollingPlace
 	lm                   *listManager.ListManager
 
 	hasMenu bool
@@ -143,7 +143,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(
 				m.spinner.Tick, // Start the spinner ticking
 				func() tea.Msg {
-					return http.CheckServer(address)
+					return api.CheckServer(address)
 				},
 			)
 		} else if m.form.State == huh.StateAborted {
@@ -153,7 +153,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
-		case http.VoterInfoResponse:
+		case api.VoterInfoResponse:
 			// Save the response and move to the votePage
 			m.electionData = &msg
 			m.currPage = votePage
@@ -170,7 +170,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case utils.ErrMsg:
 			// Capture the error and transition to reinputConfirmationState
-			m.err = msg.Err
+			m.err = &msg
 			m.currPage = reinputConfirmationPage
 			return m, nil
 		}
@@ -206,7 +206,7 @@ func (m model) View() string {
 	case loadingPage:
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
 	case reinputConfirmationPage:
-		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
+		return m.viewReinputConfirmation()
 	case votePage:
 		return m.viewVote()
 	case contestsPage:
@@ -217,6 +217,25 @@ func (m model) View() string {
 		return m.viewPollingPlace()
 	}
 	return ""
+}
+
+func (m model) viewReinputConfirmation() string {
+	var errorMsg string
+	if m.err == nil {
+		errorMsg = "Error: unknown error"
+	} else if m.err.HTTPStatusCode >= 400 && m.err.HTTPStatusCode < 500 { // Client error
+		errorMsg = fmt.Sprintf("Error: Client error (code: %d): This is likely due to an invalid address\nor the voter information project not being up to date\nPlease check https://all.votinginfotool.org", m.err.HTTPStatusCode)
+	} else if m.err.HTTPStatusCode >= 500 && m.err.HTTPStatusCode < 600 { // Server error
+		errorMsg = fmt.Sprintf("Error: Server error (code: %d): This is likely due to the API being down\nPlease check https://all.votinginfotool.org to make sure", m.err.HTTPStatusCode)
+	} else {
+		errorMsg = fmt.Sprintf("Error: %v", m.err.Err.Error())
+	}
+
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+		lipgloss.Top,
+		errorMsg,
+		"Press any key to continue...",
+	))
 }
 
 func (m model) viewInput() string {
