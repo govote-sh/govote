@@ -93,29 +93,3 @@ func (m model) InitVotePageListManager() *listManager.ListManager {
 		m.width, m.height,
 	)
 }
-
-// refactor: take in a List struct (list and createdBool) and title
-/*
-func (m *model) initList(width, height int) {
-	if m.electionData == nil {
-		fmt.Println("electionData is nil")
-		return
-	}
-
-	// Check if PollingLocations is nil or empty
-	if m.electionData.PollingLocations == nil || len(m.electionData.PollingLocations) == 0 {
-		fmt.Println("PollingLocations is nil or empty")
-		return
-	}
-
-	// Convert []PollingPlace to []list.Item
-	var items []list.Item
-	for _, pollingPlace := range m.electionData.EarlyVoteSites {
-		items = append(items, pollingPlace)
-	}
-
-	m.pollingLocationList = list.New(items, list.NewDefaultDelegate(), width, height)
-	m.pollingLocationList.Title = "Polling Locations"
-	m.pollingLocationListCreated = true
-}
-*/

@@ -18,7 +18,7 @@ func (lm *ListManager) AddList(items []list.Item, title string, width, height in
 	return lm
 }
 
-// Init initializes the lists if the ListManager is nil
+// Initializes the lists if the ListManager is nil
 func InitListManager(data [][]list.Item, titles []string, width, height int) *ListManager {
 	lm := &ListManager{}
 	for i := 0; i < len(data); i++ {

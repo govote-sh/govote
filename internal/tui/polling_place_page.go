@@ -11,9 +11,11 @@ import (
 )
 
 func (m model) viewPollingPlace() string {
-	if m.selectedPollingPlace == nil {
-		return "No polling place selected."
-	}
+	selectedPollingPlace := m.lm.SelectedItem().(api.PollingPlace)
+
+	// if selectedItem == nil {
+	// 	return "No polling place selected."
+	// }
 
 	// Title and bold styles
 	titleStyle := m.render.NewStyle().
@@ -24,34 +26,31 @@ func (m model) viewPollingPlace() string {
 		Render
 	boldStyle := m.render.NewStyle().Bold(true).Render
 
-	// Polling place title
 	title := titleStyle("Polling Place Details")
 
-	// Address
-	address := boldStyle(m.selectedPollingPlace.Address.String())
+	address := boldStyle(selectedPollingPlace.Address.String())
 
-	// Polling hours (using your existing table generation)
-	hoursTable := newPollingPlaceHoursTable(*m.selectedPollingPlace)
+	hoursTable := newPollingPlaceHoursTable(selectedPollingPlace.PollingHours)
 
 	// Notes (if any)
 	var notes string
-	if m.selectedPollingPlace.Notes != "" {
-		notes = boldStyle("Notes: ") + m.selectedPollingPlace.Notes
+	if selectedPollingPlace.Notes != "" {
+		notes = boldStyle("Notes: ") + selectedPollingPlace.Notes
 	}
 
 	// Voter services (if any)
 	var voterServices string
-	if m.selectedPollingPlace.VoterServices != "" {
-		voterServices = boldStyle("Voter Services: ") + m.selectedPollingPlace.VoterServices
+	if selectedPollingPlace.VoterServices != "" {
+		voterServices = boldStyle("Voter Services: ") + selectedPollingPlace.VoterServices
 	}
 
 	// Start and end dates (if any)
 	var dates string
-	if m.selectedPollingPlace.StartDate != "" && m.selectedPollingPlace.EndDate != "" {
-		if m.selectedPollingPlace.StartDate == m.selectedPollingPlace.EndDate {
-			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), m.selectedPollingPlace.StartDate)
+	if selectedPollingPlace.StartDate != "" && selectedPollingPlace.EndDate != "" {
+		if selectedPollingPlace.StartDate == selectedPollingPlace.EndDate {
+			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), selectedPollingPlace.StartDate)
 		} else {
-			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), m.selectedPollingPlace.StartDate, m.selectedPollingPlace.EndDate)
+			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), selectedPollingPlace.StartDate, selectedPollingPlace.EndDate)
 		}
 	} else {
 		dates = ""
@@ -59,11 +58,10 @@ func (m model) viewPollingPlace() string {
 
 	// Latitude and Longitude (if any)
 	var coordinates string
-	if url, err := m.selectedPollingPlace.GetMapsUrl(); err == nil {
+	if url, err := selectedPollingPlace.GetMapsUrl(); err == nil {
 		coordinates = boldStyle("Map link: ") + url
 	}
 
-	// Join everything vertically and render
 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
 		lipgloss.JoinVertical(
 			lipgloss.Top,
@@ -93,8 +91,8 @@ func (m model) updatePollingPlace(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func newPollingPlaceHoursTable(p api.PollingPlace) table.Model {
-	pollingHours := parsePollingHours(p.PollingHours)
+func newPollingPlaceHoursTable(hours string) table.Model {
+	pollingHours := parsePollingHours(hours)
 
 	// Define columns for the table
 	columns := []table.Column{
