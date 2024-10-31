@@ -191,7 +191,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case votePage:
 		return m.UpdateVote(msg)
 	// case contestsPage:
-	// case registerPage:
+	case registerPage:
+		return m, nil
 	case pollingPlacePage:
 		return m.updatePollingPlace(msg)
 	}
@@ -249,13 +250,5 @@ func (m model) viewContests() string {
 		lipgloss.Top,
 		m.HeaderView(),
 		"Contests",
-	))
-}
-
-func (m model) viewRegister() string {
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
-		lipgloss.Top,
-		m.HeaderView(),
-		"Register",
 	))
 }

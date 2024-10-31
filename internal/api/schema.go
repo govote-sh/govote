@@ -15,7 +15,7 @@ type VoterInfoResponse struct {
 	EarlyVoteSites   []PollingPlace `json:"earlyVoteSites"`
 	DropOffLocations []PollingPlace `json:"dropOffLocations"`
 	Contests         []Contest      `json:"contests"`
-	State            []State        `json:"state"`
+	State            []State        `json:"state"` // This is an array in the API, but I think it should be a single object. Have not seen a counterexample
 	MailOnly         bool           `json:"mailOnly"`
 }
 
