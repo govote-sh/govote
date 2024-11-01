@@ -9,20 +9,20 @@ import (
 )
 
 func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
-	if !m.hasMenu || (m.lm != nil && m.lm.SettingFilter()) {
+	if !m.hasMenu || (m.lm != nil && m.lm.SettingFilter()) || (m.contestsList != nil && m.contestsList.SettingFilter()) {
 		return m, nil
 	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		// Or directly navigate to a specific tab
-		case "v":
+		case "v", "V":
 			m.currPage = votePage
-		case "c":
+		case "c", "C":
 			m.currPage = contestsPage
-		case "r":
+		case "r", "R":
 			m.currPage = registerPage
-		case "q": // Quit
+		case "q", "Q": // Quit
 			return m, tea.Quit
 		}
 	}

@@ -1,0 +1,30 @@
+# fly.toml app configuration file generated for govote on 2024-11-01T15:35:31-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'govote'
+primary_region = 'iad'
+
+[build]
+[build.args]
+GO_VERSION = '1.23.2'
+
+[env]
+PORT = '8080'
+
+[[services]]
+internal_port = 23234
+protocol = "tcp"
+auto_stop_machines = 'stop'
+auto_start_machines = true
+[[services.ports]]
+port = 22
+
+[[vm]]
+size = 'shared-cpu-1x'
+
+
+[mounts]
+source = "ssh_key"
+destination = "/data"

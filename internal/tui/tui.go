@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
+	"github.com/charmbracelet/log"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -234,6 +235,7 @@ func (m model) viewReinputConfirmation() string {
 	} else if m.err.HTTPStatusCode >= 500 && m.err.HTTPStatusCode < 600 { // Server error
 		errorMsg = fmt.Sprintf("Error: Server error (code: %d): This is likely due to the API being down\nPlease check https://all.votinginfotool.org to make sure", m.err.HTTPStatusCode)
 	} else {
+		log.Error(m.err.Err)
 		errorMsg = fmt.Sprintf("Error: %v", m.err.Err.Error())
 	}
 
