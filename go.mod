@@ -10,6 +10,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/charmbracelet/ssh v0.0.0-20240725163421-eb71b85b27aa
 	github.com/charmbracelet/wish v1.4.3
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20241022195102-750a45fe5e47
 )
 
 require (
