@@ -9,8 +9,12 @@ import (
 )
 
 func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.lm != nil && m.lm.SettingFilter() {
-		return m, nil
+	if m.lm != nil {
+		var cmd tea.Cmd
+		m.lm, cmd = m.lm.UpdateActiveList(msg)
+		if cmd != nil {
+			return m, cmd
+		}
 	}
 
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -34,13 +38,6 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.lm != nil {
-		var cmd tea.Cmd
-		m.lm, cmd = m.lm.UpdateActiveList(msg)
-		if cmd != nil {
-			return m, cmd
-		}
-	}
 	return m, nil
 }
 

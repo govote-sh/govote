@@ -17,8 +17,13 @@ func (m model) InitContestsList() *list.Model {
 }
 
 func (m model) updateContests(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.contestsList != nil && m.contestsList.SettingFilter() {
-		return m, nil
+	if m.contestsList != nil {
+		var cmd tea.Cmd
+		contestsList, cmd := m.contestsList.Update(msg)
+		m.contestsList = &contestsList
+		if cmd != nil {
+			return m, cmd
+		}
 	}
 
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -33,18 +38,6 @@ func (m model) updateContests(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	}
-
-	if m.contestsList == nil {
-		return m, nil
-	}
-
-	var cmd tea.Cmd
-	contestsList, cmd := m.contestsList.Update(msg)
-	m.contestsList = &contestsList
-	if cmd != nil {
-		return m, cmd
-	}
-
 	return m, nil
 }
 
