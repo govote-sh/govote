@@ -2,7 +2,17 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
-var (
-	HeaderStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Align(lipgloss.Center).Bold(true).Padding(0, 1)
-	SubtitleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Align(lipgloss.Center).Padding(0, 1)
-)
+func (m model) RenderErrorBox(text string) string {
+	const HEADER_HEIGHT = 3
+	return lipgloss.Place(
+		m.width, m.height-HEADER_HEIGHT, lipgloss.Center, lipgloss.Center,
+		lipgloss.NewStyle().
+			Foreground(lipgloss.Color("205")).
+			Background(lipgloss.Color("52")).
+			Bold(true).
+			Padding(1, 2).
+			Border(lipgloss.RoundedBorder()).
+			Width(m.width/3).
+			Render(text),
+	)
+}

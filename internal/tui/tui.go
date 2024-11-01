@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/list"
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
 
@@ -36,7 +37,8 @@ type model struct {
 
 	// Lists
 	selectedPollingPlace *api.PollingPlace
-	lm                   *listManager.ListManager
+	lm                   *listManager.ListManager // List manager for the vote page
+	contestsList         *list.Model
 
 	hasMenu bool
 
@@ -159,6 +161,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.currPage = votePage
 			m.hasMenu = true
 			m.lm = m.InitVotePageListManager()
+			m.contestsList = m.InitContestsList()
 
 			return m, nil
 
@@ -190,7 +193,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case votePage:
 		return m.UpdateVote(msg)
-	// case contestsPage:
+	case contestsPage:
+		return m.UpdateContests(msg)
 	case registerPage:
 		return m, nil
 	case pollingPlacePage:
@@ -211,7 +215,7 @@ func (m model) View() string {
 	case votePage:
 		return m.viewVote()
 	case contestsPage:
-		return m.viewContests()
+		return m.ViewContests()
 	case registerPage:
 		return m.viewRegister()
 	case pollingPlacePage:
@@ -245,10 +249,10 @@ func (m model) viewInput() string {
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
 }
 
-func (m model) viewContests() string {
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
-		lipgloss.Top,
-		m.HeaderView(),
-		"Contests",
-	))
-}
+// func (m model) viewContests() string {
+// 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+// 		lipgloss.Top,
+// 		m.HeaderView(),
+// 		"Contests",
+// 	))
+// }

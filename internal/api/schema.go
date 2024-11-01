@@ -159,6 +159,18 @@ type Contest struct {
 	Sources                    []Source    `json:"sources"`
 }
 
+func (c Contest) FilterValue() string {
+	return c.BallotTitle
+}
+
+func (c Contest) Title() string {
+	return c.BallotTitle
+}
+
+func (c Contest) Description() string {
+	return c.Office
+}
+
 // Candidate Resource
 type Candidate struct {
 	Name          string    `json:"name"`
@@ -169,6 +181,18 @@ type Candidate struct {
 	Email         string    `json:"email"`
 	OrderOnBallot int64     `json:"orderOnBallot"`
 	Channels      []Channel `json:"channels"`
+}
+
+func (c Candidate) FilterValue() string {
+	return c.Name
+}
+
+func (c Candidate) Title() string {
+	return c.Name
+}
+
+func (c Candidate) Description() string {
+	return c.Party
 }
 
 // Channel Resource
