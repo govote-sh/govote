@@ -54,7 +54,7 @@ func (m model) HeaderView() string {
 
 	// Combine the tabs and ensure proper padding to avoid the bar cutting off
 	var tabs []string
-	if m.currPage != pollingPlacePage {
+	if m.currPage != pollingPlacePage && m.currPage != contestContentPage {
 		tabs = []string{title, electionDay, contests, register}
 	} else {
 		tabs = []string{title, esc}

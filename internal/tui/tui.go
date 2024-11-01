@@ -52,9 +52,8 @@ const (
 	loadingPage
 	reinputConfirmationPage
 	votePage
-	// earlyVotePage
-	// ballotDropOffPage
 	contestsPage
+	contestContentPage
 	registerPage
 	pollingPlacePage
 )
@@ -193,9 +192,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case votePage:
 		return m.UpdateVote(msg)
 	case contestsPage:
-		return m.UpdateContests(msg)
+		return m.updateContests(msg)
+	case contestContentPage:
+		return m.updateContestContent(msg)
 	case registerPage:
-		return m, nil
+		return m, nil // TODO: Window size updates? Escapes?
 	case pollingPlacePage:
 		return m.updatePollingPlace(msg)
 	}
@@ -214,7 +215,9 @@ func (m model) View() string {
 	case votePage:
 		return m.viewVote()
 	case contestsPage:
-		return m.ViewContests()
+		return m.viewContests()
+	case contestContentPage:
+		return m.viewContestContent()
 	case registerPage:
 		return m.viewRegister()
 	case pollingPlacePage:
