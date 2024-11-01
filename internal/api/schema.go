@@ -1,6 +1,10 @@
-package http
+package api
 
-import "strings"
+import (
+	"fmt"
+	"net/url"
+	"strings"
+)
 
 type VoterInfoResponse struct {
 	Kind             string         `json:"kind"`
@@ -11,7 +15,7 @@ type VoterInfoResponse struct {
 	EarlyVoteSites   []PollingPlace `json:"earlyVoteSites"`
 	DropOffLocations []PollingPlace `json:"dropOffLocations"`
 	Contests         []Contest      `json:"contests"`
-	State            []State        `json:"state"`
+	State            []State        `json:"state"` // This is an array in the API, but I think it should be a single object. Have not seen a counterexample
 	MailOnly         bool           `json:"mailOnly"`
 }
 
@@ -96,6 +100,40 @@ type PollingPlace struct {
 	Sources       []Source `json:"sources"`
 }
 
+func (p PollingPlace) FilterValue() string {
+	if p.Name != "" {
+		return p.Name
+	} else if p.Address.LocationName != "" {
+		return p.Address.LocationName
+	} else {
+		return p.Address.String()
+	}
+}
+
+func (p PollingPlace) Title() string {
+	if p.Name != "" {
+		return p.Name
+	} else if p.Address.LocationName != "" {
+		return p.Address.LocationName
+	} else {
+		return p.Address.String()
+	}
+}
+
+func (p PollingPlace) Description() string {
+	return p.Address.String()
+}
+
+func (p PollingPlace) GetMapsUrl() (string, error) {
+	if address := p.Address.String(); address != "" {
+		return "https://www.google.com/maps/search/?api=1&query=" + url.QueryEscape(address), nil
+	}
+	if p.Latitude == 0 || p.Longitude == 0 {
+		return "", fmt.Errorf("latitude or longitude is missing and address is empty")
+	}
+	return "https://www.google.com/maps/search/?api=1&query=" + url.QueryEscape(fmt.Sprintf("%f,%f", p.Latitude, p.Longitude)), nil
+}
+
 // Contest Resource
 type Contest struct {
 	Type                       string      `json:"type"` // TODO: Convert to ENUM
@@ -107,9 +145,9 @@ type Contest struct {
 	Level                      []string    `json:"level"`
 	Roles                      []string    `json:"roles"`
 	District                   District    `json:"district"`
-	NumberElected              string      `json:"numberElected"`   // Schema says long, but API returns a string
-	NumberVotingFor            string      `json:"numberVotingFor"` // Schema says long, but API returns a string
-	BallotPlacement            string      `json:"ballotPlacement"` // Schema says long, but API returns a string
+	NumberElected              string      `json:"numberElected"`   // Docs say long, but API returns a string
+	NumberVotingFor            string      `json:"numberVotingFor"` // Docs say long, but API returns a string
+	BallotPlacement            string      `json:"ballotPlacement"` // Docs say long, but API returns a string
 	Candidates                 []Candidate `json:"candidates"`
 	ReferendumTitle            string      `json:"referendumTitle"`
 	ReferendumSubtitle         string      `json:"referendumSubtitle"`
@@ -124,6 +162,18 @@ type Contest struct {
 	Sources                    []Source    `json:"sources"`
 }
 
+func (c Contest) FilterValue() string {
+	return c.BallotTitle
+}
+
+func (c Contest) Title() string {
+	return c.BallotTitle
+}
+
+func (c Contest) Description() string {
+	return c.Office
+}
+
 // Candidate Resource
 type Candidate struct {
 	Name          string    `json:"name"`
@@ -134,6 +184,18 @@ type Candidate struct {
 	Email         string    `json:"email"`
 	OrderOnBallot int64     `json:"orderOnBallot"`
 	Channels      []Channel `json:"channels"`
+}
+
+func (c Candidate) FilterValue() string {
+	return c.Name
+}
+
+func (c Candidate) Title() string {
+	return c.Name
+}
+
+func (c Candidate) Description() string {
+	return c.Party
 }
 
 // Channel Resource

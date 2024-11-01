@@ -36,6 +36,8 @@ func main() {
 			bubbletea.Middleware(tui.TeaHandler),
 			logging.Middleware(),
 		),
+		wish.WithIdleTimeout(8*time.Minute),
+		wish.WithMaxTimeout(60*time.Minute),
 	)
 
 	if err != nil {

@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/govote-sh/govote/internal/secrets"
-	utils "github.com/govote-sh/govote/internal/utils"
+	"github.com/govote-sh/govote/internal/utils"
 )
 
 const baseURL = "https://www.googleapis.com/civicinfo/v2/voterinfo"
@@ -25,7 +25,7 @@ func CheckServer(address string) tea.Msg {
 
 	base, err := url.Parse(baseURL)
 	if err != nil {
-		return utils.ErrMsg{Err: fmt.Errorf("Could not parse baseURL")}
+		return utils.ErrMsg{Err: fmt.Errorf("could not parse baseURL")}
 	}
 
 	// Query params
@@ -34,32 +34,39 @@ func CheckServer(address string) tea.Msg {
 	params.Add("address", address)
 	base.RawQuery = params.Encode()
 
+	// Perform the HTTP GET request
 	res, err := c.Get(base.String())
-
 	if err != nil {
 		return utils.ErrMsg{Err: err}
 	}
 	defer res.Body.Close()
 
+	// Check for non-200 response codes
+	if res.StatusCode != http.StatusOK {
+		return utils.ErrMsg{
+			Err:            fmt.Errorf("Received non-200 response: %s", res.Status),
+			HTTPStatusCode: res.StatusCode,
+		}
+	}
+
 	// Read and parse the JSON response
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return utils.ErrMsg{Err: err}
+		return utils.ErrMsg{Err: err, HTTPStatusCode: res.StatusCode}
 	}
 
 	// Parse the JSON response into the defined struct
 	var data VoterInfoResponse
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return utils.ErrMsg{Err: err}
+		return utils.ErrMsg{Err: err, HTTPStatusCode: res.StatusCode}
 	}
 
-	// REFACTOR: with better check of API response
+	// Check if the election day is present
 	electionDay := data.Election.ElectionDay
 	if electionDay == "" {
-		return utils.ErrMsg{Err: fmt.Errorf("could not extract election day from response")}
+		return utils.ErrMsg{Err: fmt.Errorf("could not extract election day from response"), HTTPStatusCode: res.StatusCode}
 	}
 
-	// Return the election day as a ResData message
 	return data
 }

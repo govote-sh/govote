@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/list"
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
 
@@ -10,7 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish/bubbletea"
-	handler "github.com/govote-sh/govote/internal/http"
+	"github.com/govote-sh/govote/internal/api"
+	"github.com/govote-sh/govote/internal/listManager"
 	"github.com/govote-sh/govote/internal/utils"
 )
 
@@ -19,19 +21,28 @@ type model struct {
 	form *huh.Form
 
 	// Style & Bubbles
-	style   lipgloss.Style
+	render  *lipgloss.Renderer
 	spinner spinner.Model
 
-	// State
-	state page
+	// Page
+	currPage page
 
 	// Response
-	electionData *handler.VoterInfoResponse
-	err          error
+	electionData *api.VoterInfoResponse
+	err          *utils.ErrMsg
 
 	// Header and subtitle styles
 	headerStyle   lipgloss.Style
 	subtitleStyle lipgloss.Style
+
+	// Lists
+	lm           *listManager.ListManager // List manager for the vote page
+	contestsList *list.Model              // List for the contests page
+
+	hasMenu bool
+
+	// Track window size
+	width, height int
 }
 
 type page int
@@ -40,10 +51,16 @@ const (
 	inputPage page = iota
 	loadingPage
 	reinputConfirmationPage
-	pollingLocationPage
+	votePage
+	contestsPage
+	contestContentPage
+	registerPage
+	pollingPlacePage
 )
 
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, _ := s.Pty()
+
 	// Set up the huh form for user input
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -51,24 +68,19 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		),
 	)
 
+	r := bubbletea.MakeRenderer(s)
+
 	// Define the styles for the header and subtitle
-	headerStyle := lipgloss.NewStyle().
+	headerStyle := r.NewStyle().
 		Foreground(lipgloss.Color("205")).
 		Align(lipgloss.Center).
 		Bold(true).
 		Padding(0, 1)
 
-	subtitleStyle := lipgloss.NewStyle().
+	subtitleStyle := r.NewStyle().
 		Foreground(lipgloss.Color("240")).
 		Align(lipgloss.Center).
 		Padding(0, 1)
-
-	r := bubbletea.MakeRenderer(s)
-	style := r.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 2).
-		BorderForeground(lipgloss.Color("#444444")).
-		Foreground(lipgloss.Color("#7571F9"))
 
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
@@ -77,11 +89,14 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	// Create the model with the form, style, and spinner
 	m := model{
 		form:          form,
-		style:         style,
 		spinner:       spin,
-		state:         inputPage,
+		currPage:      inputPage,
 		headerStyle:   headerStyle,   // Assign the header style
 		subtitleStyle: subtitleStyle, // Assign the subtitle style
+		width:         pty.Window.Width,
+		height:        pty.Window.Height,
+		render:        r,
+		hasMenu:       false,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -90,18 +105,31 @@ func (m model) Init() tea.Cmd {
 	if m.form == nil {
 		return nil
 	}
-	return tea.Batch(
-		m.form.Init(),  // Initialize the form
-		m.spinner.Tick, // Pass the command to start the spinner ticking
-	)
+	return m.form.Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+	var headerCmd tea.Cmd
+	m, headerCmd = m.HeaderUpdate(msg)
+	cmds := []tea.Cmd{headerCmd}
 
-	switch m.state {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// Capture the window size
+		m.width = msg.Width
+		m.height = msg.Height
+
+		// If the list is created, adjust its size accordingly
+		if m.lm != nil {
+			m.lm.SetSize(m.width, m.height)
+		}
+		return m, nil
+	}
+
+	switch m.currPage {
 	case inputPage:
 		if m.form != nil {
+			// Update the form and handle form completion or exit
 			f, cmd := m.form.Update(msg)
 			m.form = f.(*huh.Form)
 			cmds = append(cmds, cmd)
@@ -109,13 +137,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.form.State == huh.StateCompleted {
 			// Get the user input and switch to loading state
 			address := m.form.GetString("address")
-			m.state = loadingPage
+			m.currPage = loadingPage
 
 			// Return the CheckServer call as a tea.Cmd
 			return m, tea.Batch(
 				m.spinner.Tick, // Start the spinner ticking
 				func() tea.Msg {
-					return handler.CheckServer(address)
+					return api.CheckServer(address)
 				},
 			)
 		} else if m.form.State == huh.StateAborted {
@@ -124,26 +152,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
-		case handler.VoterInfoResponse:
-			// Save the response and move to the result state
+		case api.VoterInfoResponse:
+			// Save the response and move to the votePage
 			m.electionData = &msg
-			m.state = pollingLocationPage
+			m.currPage = votePage
+			m.hasMenu = true
+			m.lm = m.InitVotePageListManager()
+			m.contestsList = m.InitContestsList()
+
 			return m, nil
+
 		case spinner.TickMsg:
 			var cmd tea.Cmd
 			m.spinner, cmd = m.spinner.Update(msg)
-			return m, cmd
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+
 		case utils.ErrMsg:
-			// Capture the error and transition to the reinputConfirmationState
-			m.err = msg.Err
-			m.state = reinputConfirmationPage
+			// Capture the error and transition to reinputConfirmationState
+			m.err = &msg
+			m.currPage = reinputConfirmationPage
 			return m, nil
 		}
-
 	case reinputConfirmationPage:
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
-			// Reset the form and return to the input state
+			// Reset the form and return to input state
 			m.form = huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().Title("Address").Key("address"),
@@ -151,49 +185,67 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			m.form.Init()
 			m.err = nil
-			m.state = inputPage
+			m.currPage = inputPage
 			return m, nil
 		}
-
-	case pollingLocationPage:
-		// Allow the user to exit by pressing "q" or "ctrl+c"
-		if keyMsg, ok := msg.(tea.KeyMsg); ok {
-			if keyMsg.String() == "q" || keyMsg.Type == tea.KeyCtrlC {
-				return m, tea.Quit
-			}
-		}
+	case votePage:
+		return m.UpdateVote(msg)
+	case contestsPage:
+		return m.updateContests(msg)
+	case contestContentPage:
+		return m.updateContestContent(msg)
+	case registerPage:
+		return m, nil // TODO: Window size updates? Escapes?
+	case pollingPlacePage:
+		return m.updatePollingPlace(msg)
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
 func (m model) View() string {
-	switch m.state {
+	switch m.currPage {
 	case inputPage:
 		return m.viewInput()
 	case loadingPage:
 		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
 	case reinputConfirmationPage:
-		return fmt.Sprintf("Error: %v\nPress any key to continue...", m.err)
-	case pollingLocationPage:
-		return m.viewPollingPlaces()
+		return m.viewReinputConfirmation()
+	case votePage:
+		return m.viewVote()
+	case contestsPage:
+		return m.viewContests()
+	case contestContentPage:
+		return m.viewContestContent()
+	case registerPage:
+		return m.viewRegister()
+	case pollingPlacePage:
+		return m.viewPollingPlace()
 	}
 	return ""
+}
+
+func (m model) viewReinputConfirmation() string {
+	var errorMsg string
+	if m.err == nil {
+		errorMsg = "Error: unknown error"
+	} else if m.err.HTTPStatusCode >= 400 && m.err.HTTPStatusCode < 500 { // Client error
+		errorMsg = fmt.Sprintf("Error: Client error (code: %d): This is likely due to an invalid address\nor the voter information project not being up to date\nPlease check https://all.votinginfotool.org", m.err.HTTPStatusCode)
+	} else if m.err.HTTPStatusCode >= 500 && m.err.HTTPStatusCode < 600 { // Server error
+		errorMsg = fmt.Sprintf("Error: Server error (code: %d): This is likely due to the API being down\nPlease check https://all.votinginfotool.org to make sure", m.err.HTTPStatusCode)
+	} else {
+		errorMsg = fmt.Sprintf("Error: %v", m.err.Err.Error())
+	}
+
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+		lipgloss.Top,
+		errorMsg,
+		"Press any key to continue...",
+	))
 }
 
 func (m model) viewInput() string {
 	header := m.headerStyle.Render("Welcome to govote.sh!")
 	subtitle := m.subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
-}
-
-func (m model) viewPollingPlaces() string {
-	headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	header := m.headerStyle.Render(headerText)
-	subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
-	subtitle := m.headerStyle.Render(subtitleText)
-	if m.electionData != nil {
-		return fmt.Sprintf("%s\n%s\nUpcoming election: %s on %s\n\n", header, subtitle, m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	}
-	return "No election data available." // Transition to Reinput confirmation state? or catch error?
 }
