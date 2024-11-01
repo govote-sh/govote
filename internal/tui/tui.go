@@ -250,11 +250,3 @@ func (m model) viewInput() string {
 	subtitle := m.subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
 }
-
-// func (m model) viewContests() string {
-// 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
-// 		lipgloss.Top,
-// 		m.HeaderView(),
-// 		"Contests",
-// 	))
-// }

@@ -9,8 +9,6 @@ import (
 )
 
 func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Handle list updates
-
 	// Allow the user to exit by pressing "q" or "ctrl+c"
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
@@ -47,10 +45,6 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) viewVote() string {
-	// headerText := fmt.Sprintf("Upcoming %s on %s", m.electionData.Election.Name, m.electionData.Election.ElectionDay)
-	// header := m.headerStyle.Render(headerText)
-	// subtitleText := fmt.Sprintf("Results for: %s", m.electionData.NormalizedInput.String())
-	// subtitle := m.headerStyle.MarginBottom(1).Render(subtitleText)
 	if m.lm == nil {
 		return "building list..."
 	}

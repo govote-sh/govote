@@ -59,12 +59,14 @@ func (m model) viewPollingPlace() string {
 	}
 
 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
-		lipgloss.JoinVertical(
+		JoinNonEmptyVertical(
 			lipgloss.Top,
 			m.HeaderView(),
 			title,
 			address,
+			"\t",
 			hoursTable.View(),
+			"\t",
 			notes,
 			voterServices,
 			dates,
@@ -104,8 +106,10 @@ func newPollingPlaceHoursTable(hours string) table.Model {
 		rows = append(rows, table.Row{day, hours})
 	}
 
+	tableHeight := min(15+1, len(rows)+1)
+
 	// Create the table model with the rows and columns
-	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(15))
+	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(tableHeight))
 
 	// Style the table (optional)
 	t.SetStyles(table.Styles{

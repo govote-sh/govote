@@ -125,8 +125,11 @@ func (p PollingPlace) Description() string {
 }
 
 func (p PollingPlace) GetMapsUrl() (string, error) {
+	if address := p.Address.String(); address != "" {
+		return "https://www.google.com/maps/search/?api=1&query=" + url.QueryEscape(address), nil
+	}
 	if p.Latitude == 0 || p.Longitude == 0 {
-		return "", fmt.Errorf("latitude or longitude is missing")
+		return "", fmt.Errorf("latitude or longitude is missing and address is empty")
 	}
 	return "https://www.google.com/maps/search/?api=1&query=" + url.QueryEscape(fmt.Sprintf("%f,%f", p.Latitude, p.Longitude)), nil
 }
@@ -142,9 +145,9 @@ type Contest struct {
 	Level                      []string    `json:"level"`
 	Roles                      []string    `json:"roles"`
 	District                   District    `json:"district"`
-	NumberElected              string      `json:"numberElected"`   // Schema says long, but API returns a string
-	NumberVotingFor            string      `json:"numberVotingFor"` // Schema says long, but API returns a string
-	BallotPlacement            string      `json:"ballotPlacement"` // Schema says long, but API returns a string
+	NumberElected              string      `json:"numberElected"`   // Docs say long, but API returns a string
+	NumberVotingFor            string      `json:"numberVotingFor"` // Docs say long, but API returns a string
+	BallotPlacement            string      `json:"ballotPlacement"` // Docs say long, but API returns a string
 	Candidates                 []Candidate `json:"candidates"`
 	ReferendumTitle            string      `json:"referendumTitle"`
 	ReferendumSubtitle         string      `json:"referendumSubtitle"`

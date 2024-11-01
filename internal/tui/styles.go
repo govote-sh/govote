@@ -16,3 +16,14 @@ func (m model) RenderErrorBox(text string) string {
 			Render(text),
 	)
 }
+
+// JoinNonEmptyVertical does a lipgloss.JoinVertical, but skips empty arguments (avoiding empty lines)
+func JoinNonEmptyVertical(pos lipgloss.Position, items ...string) string {
+	nonEmptyItems := []string{}
+	for _, item := range items {
+		if item != "" {
+			nonEmptyItems = append(nonEmptyItems, item)
+		}
+	}
+	return lipgloss.JoinVertical(pos, nonEmptyItems...)
+}
