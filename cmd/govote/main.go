@@ -16,10 +16,12 @@ import (
 	"github.com/charmbracelet/wish/logging"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/tui"
+
+	_ "golang.org/x/crypto/x509roots/fallback"
 )
 
 const (
-	host = "localhost"
+	host = "0.0.0.0"
 	port = "23234"
 )
 
@@ -31,7 +33,7 @@ func main() {
 
 	srv, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath(".ssh/id_ed25519"),
+		wish.WithHostKeyPath("/data/govote"),
 		wish.WithMiddleware(
 			bubbletea.Middleware(tui.TeaHandler),
 			logging.Middleware(),

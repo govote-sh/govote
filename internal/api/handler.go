@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/log"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/utils"
 )
@@ -37,6 +38,7 @@ func CheckServer(address string) tea.Msg {
 	// Perform the HTTP GET request
 	res, err := c.Get(base.String())
 	if err != nil {
+		log.Error("Could not perform HTTP GET request", "error", err)
 		return utils.ErrMsg{Err: err}
 	}
 	defer res.Body.Close()
