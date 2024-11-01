@@ -9,15 +9,15 @@ import (
 )
 
 func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Allow the user to exit by pressing "q" or "ctrl+c"
+	if m.lm != nil && m.lm.SettingFilter() {
+		return m, nil
+	}
+
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			if m.lm != nil && m.lm.SettingFilter() {
-				break
-			}
 			_, ok := m.lm.SelectedItem().(api.PollingPlace)
 			if ok {
 				m.currPage = pollingPlacePage

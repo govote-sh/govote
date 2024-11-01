@@ -17,14 +17,15 @@ func (m model) InitContestsList() *list.Model {
 }
 
 func (m model) updateContests(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.contestsList != nil && m.contestsList.SettingFilter() {
+		return m, nil
+	}
+
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			if m.contestsList != nil && m.contestsList.SettingFilter() {
-				break
-			}
 			_, ok := m.contestsList.SelectedItem().(api.Contest)
 			if ok {
 				m.currPage = contestContentPage
