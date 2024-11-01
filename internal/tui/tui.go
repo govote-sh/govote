@@ -149,7 +149,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if m.form.State == huh.StateAborted {
 			return m, tea.Quit
 		}
-
 	case loadingPage:
 		// Handle the server response
 		switch msg := msg.(type) {
