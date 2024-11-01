@@ -36,9 +36,8 @@ type model struct {
 	subtitleStyle lipgloss.Style
 
 	// Lists
-	selectedPollingPlace *api.PollingPlace
-	lm                   *listManager.ListManager // List manager for the vote page
-	contestsList         *list.Model
+	lm           *listManager.ListManager // List manager for the vote page
+	contestsList *list.Model              // List for the contests page
 
 	hasMenu bool
 

@@ -20,10 +20,8 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.lm != nil && m.lm.SettingFilter() {
 				break
 			}
-			selectedItem, ok := m.lm.SelectedItem().(api.PollingPlace)
+			_, ok := m.lm.SelectedItem().(api.PollingPlace)
 			if ok {
-				// Move to the polling place detail page with the selected item
-				m.selectedPollingPlace = &selectedItem
 				m.currPage = pollingPlacePage
 			}
 			return m, nil

@@ -13,10 +13,6 @@ import (
 func (m model) viewPollingPlace() string {
 	selectedPollingPlace := m.lm.SelectedItem().(api.PollingPlace)
 
-	// if selectedItem == nil {
-	// 	return "No polling place selected."
-	// }
-
 	// Title and bold styles
 	titleStyle := m.render.NewStyle().
 		Bold(true).
