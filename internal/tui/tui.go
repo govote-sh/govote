@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
 	spinner "github.com/charmbracelet/bubbles/spinner"
 	huh "github.com/charmbracelet/huh"
@@ -24,6 +25,9 @@ type model struct {
 	// Style & Bubbles
 	render  *lipgloss.Renderer
 	spinner spinner.Model
+
+	// Help menu
+	help help.Model
 
 	// Page
 	currPage page
@@ -98,6 +102,7 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		height:        pty.Window.Height,
 		render:        r,
 		hasMenu:       false,
+		help:          help.New(),
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -120,9 +125,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
-		// If the list is created, adjust its size accordingly
 		if m.lm != nil {
-			m.lm.SetSize(m.width, m.height)
+			m.lm.SetSize(m.width, m.height-4)
+		}
+		if m.contestsList != nil {
+			m.contestsList.SetSize(m.width, m.height-4)
 		}
 		return m, nil
 	}

@@ -11,21 +11,21 @@ import (
 func formatElectionAdministration(admin api.ElectionAdministrationBody, render *lipgloss.Renderer) string {
 	var sections []string
 
-	sectionTitleStyle := render.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Bold(true).
-		Render
-	fieldLabelStyle := render.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Bold(true).
-		Render
-	fieldValueStyle := render.NewStyle().
-		Foreground(lipgloss.Color("63")).
-		Render
+	// sectionTitleStyle := render.NewStyle().
+	// 	Foreground(lipgloss.Color("205")).
+	// 	Bold(true).
+	// 	Render
+	// fieldLabelStyle := render.NewStyle().
+	// 	Foreground(lipgloss.Color("255")).
+	// 	Bold(true).
+	// 	Render
+	// fieldValueStyle := render.NewStyle().
+	// 	Foreground(lipgloss.Color("63")).
+	// 	Render
 
 	// Title for Election Administration section
-	sections = append(sections, sectionTitleStyle("Election Administration"))
-	sections = append(sections, fieldValueStyle(admin.Name))
+	sections = append(sections, sectionTitleStyle(render, "Election Administration"))
+	sections = append(sections, fieldValueStyle(render, admin.Name))
 
 	// Append URLs if they exist
 	urlFields := []struct {
@@ -42,46 +42,46 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody, render *
 	}
 	for _, field := range urlFields {
 		if field.value != "" {
-			sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(field.label), fieldValueStyle(field.value)))
+			sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(render, field.label), fieldValueStyle(render, field.value)))
 		}
 	}
 
 	// Append Hours of Operation if they exist
 	if admin.HoursOfOperation != "" {
-		sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle("Hours of Operation"), fieldValueStyle(admin.HoursOfOperation)))
+		sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(render, "Hours of Operation"), fieldValueStyle(render, admin.HoursOfOperation)))
 	}
 
 	// Voter Services if they exist
 	if len(admin.VoterServices) > 0 {
-		sections = append(sections, sectionTitleStyle("Voter Services"))
-		sections = append(sections, fieldValueStyle(strings.Join(admin.VoterServices, ", ")))
+		sections = append(sections, sectionTitleStyle(render, "Voter Services"))
+		sections = append(sections, fieldValueStyle(render, strings.Join(admin.VoterServices, ", ")))
 	}
 
 	// Correspondence Address
 	if admin.CorrespondenceAddress != (api.Address{}) {
-		sections = append(sections, sectionTitleStyle("Correspondence Address"))
-		sections = append(sections, fieldValueStyle(admin.CorrespondenceAddress.String()))
+		sections = append(sections, sectionTitleStyle(render, "Correspondence Address"))
+		sections = append(sections, fieldValueStyle(render, admin.CorrespondenceAddress.String()))
 	}
 
 	// Physical Address
 	if admin.PhysicalAddress != (api.Address{}) {
-		sections = append(sections, sectionTitleStyle("Physical Address"))
-		sections = append(sections, fieldValueStyle(admin.PhysicalAddress.String()))
+		sections = append(sections, sectionTitleStyle(render, "Physical Address"))
+		sections = append(sections, fieldValueStyle(render, admin.PhysicalAddress.String()))
 	}
 
 	// Election Officials
 	if len(admin.ElectionOfficials) > 0 {
-		sections = append(sections, sectionTitleStyle("Election Officials"))
+		sections = append(sections, sectionTitleStyle(render, "Election Officials"))
 		for _, official := range admin.ElectionOfficials {
-			officialInfo := []string{fieldValueStyle(official.Name)}
+			officialInfo := []string{fieldValueStyle(render, official.Name)}
 			if official.Title != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(official.Title)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(render, official.Title)))
 			}
 			if official.OfficePhoneNumber != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(official.OfficePhoneNumber)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(render, official.OfficePhoneNumber)))
 			}
 			if official.EmailAddress != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(official.EmailAddress)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(render, official.EmailAddress)))
 			}
 			sections = append(sections, strings.Join(officialInfo, ", "))
 		}

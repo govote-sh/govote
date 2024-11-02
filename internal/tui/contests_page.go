@@ -13,6 +13,7 @@ func (m model) InitContestsList() *list.Model {
 		items = append(items, list.Item(contest))
 	}
 	model := list.New(items, list.NewDefaultDelegate(), m.width, m.height)
+	model.SetHeight(m.height - 4)
 	return &model
 }
 

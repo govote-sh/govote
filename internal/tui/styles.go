@@ -17,6 +17,25 @@ func (m model) RenderErrorBox(text string) string {
 	)
 }
 
+func sectionTitleStyle(r *lipgloss.Renderer, text string) string {
+	return r.NewStyle().
+		Foreground(lipgloss.Color("205")).
+		Bold(true).
+		Render(text)
+}
+
+func fieldLabelStyle(r *lipgloss.Renderer, text string) string {
+	return r.NewStyle().
+		Foreground(lipgloss.Color("255")).
+		Render(text)
+}
+
+func fieldValueStyle(r *lipgloss.Renderer, text string) string {
+	return r.NewStyle().
+		Foreground(lipgloss.Color("63")).
+		Render(text)
+}
+
 // JoinNonEmptyVertical does a lipgloss.JoinVertical, but skips empty arguments (avoiding empty lines)
 func JoinNonEmptyVertical(pos lipgloss.Position, items ...string) string {
 	nonEmptyItems := []string{}

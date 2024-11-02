@@ -79,6 +79,6 @@ func (m model) InitVotePageListManager() *listManager.ListManager {
 			"Early Voting Sites",
 			"Drop Off Locations",
 		},
-		m.width, m.height,
+		m.width, m.height-4,
 	)
 }

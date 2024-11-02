@@ -31,20 +31,20 @@ func (m model) viewPollingPlace() string {
 	// Notes (if any)
 	var notes string
 	if selectedPollingPlace.Notes != "" {
-		notes = boldStyle("Notes: ") + selectedPollingPlace.Notes
+		notes = boldStyle("Notes: ") + fieldValueStyle(m.render, selectedPollingPlace.Notes)
 	}
 
 	// Voter services (if any)
 	var voterServices string
 	if selectedPollingPlace.VoterServices != "" {
-		voterServices = boldStyle("Voter Services: ") + selectedPollingPlace.VoterServices
+		voterServices = boldStyle("Voter Services: ") + fieldValueStyle(m.render, selectedPollingPlace.VoterServices)
 	}
 
 	// Start and end dates (if any)
 	var dates string
 	if selectedPollingPlace.StartDate != "" && selectedPollingPlace.EndDate != "" {
 		if selectedPollingPlace.StartDate == selectedPollingPlace.EndDate {
-			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), selectedPollingPlace.StartDate)
+			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), fieldValueStyle(m.render, selectedPollingPlace.StartDate))
 		} else {
 			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), selectedPollingPlace.StartDate, selectedPollingPlace.EndDate)
 		}
@@ -55,7 +55,7 @@ func (m model) viewPollingPlace() string {
 	// Latitude and Longitude (if any)
 	var coordinates string
 	if url, err := selectedPollingPlace.GetMapsUrl(); err == nil {
-		coordinates = boldStyle("Map link: ") + url
+		coordinates = boldStyle("Map link: ") + fieldValueStyle(m.render, url)
 	}
 
 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
@@ -111,10 +111,9 @@ func newPollingPlaceHoursTable(hours string) table.Model {
 	// Create the table model with the rows and columns
 	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(tableHeight))
 
-	// Style the table (optional)
 	t.SetStyles(table.Styles{
 		Header: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")),
-		Cell:   lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+		Cell:   lipgloss.NewStyle().Foreground(lipgloss.Color("255")),
 	})
 
 	return t
@@ -123,7 +122,6 @@ func newPollingPlaceHoursTable(hours string) table.Model {
 func parsePollingHours(pollingHours string) [][2]string {
 	var result [][2]string
 
-	// Split the input string by newline
 	lines := strings.Split(pollingHours, "\n")
 
 	// Split each line by the first colon to get day and hours

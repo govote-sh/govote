@@ -13,9 +13,7 @@ func (m model) updateContestContent(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if keyMsg, ok := msg.(tea.KeyMsg); ok {
 		switch keyMsg.String() {
 		case "esc":
-			if m.contestsList != nil && !m.contestsList.SettingFilter() {
-				m.currPage = contestsPage
-			}
+			m.currPage = contestsPage
 			return m, nil
 		}
 	}
