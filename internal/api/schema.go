@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/govote-sh/govote/internal/utils"
 )
 
 type VoterInfoResponse struct {
@@ -136,7 +138,7 @@ func (p PollingPlace) GetMapsUrl() (string, error) {
 
 // Contest Resource
 type Contest struct {
-	Type                       string      `json:"type"` // TODO: Convert to ENUM
+	Type                       string      `json:"type"`
 	PrimaryParty               string      `json:"primaryParty"`
 	ElectorateSpecifications   string      `json:"electorateSpecifications"`
 	Special                    string      `json:"special"`
@@ -166,8 +168,9 @@ func (c Contest) FilterValue() string {
 	return c.BallotTitle
 }
 
+// TODO: I wish I could truncate based on the terminal width, but I think that would require a global variable
 func (c Contest) Title() string {
-	return c.BallotTitle
+	return utils.EllipticalTruncate(c.BallotTitle, 80)
 }
 
 func (c Contest) Description() string {

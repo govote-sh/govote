@@ -36,8 +36,8 @@ func fieldValueStyle(r *lipgloss.Renderer, text string) string {
 		Render(text)
 }
 
-// JoinNonEmptyVertical does a lipgloss.JoinVertical, but skips empty arguments (avoiding empty lines)
-func JoinNonEmptyVertical(pos lipgloss.Position, items ...string) string {
+// joinNonEmptyVertical does a lipgloss.JoinVertical, but skips empty arguments (avoiding empty lines)
+func joinNonEmptyVertical(pos lipgloss.Position, items ...string) string {
 	nonEmptyItems := []string{}
 	for _, item := range items {
 		if item != "" {

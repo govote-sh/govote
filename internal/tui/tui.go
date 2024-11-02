@@ -249,6 +249,6 @@ func (m model) viewInput() string {
 		Align(lipgloss.Center).
 		Padding(0, 1)
 	header := headerStyle.Render("Welcome to govote.sh!")
-	subtitle := subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
+	subtitle := subtitleStyle.Render(utils.Wrap("Please enter your address to get election information from the Voting Information Project", m.width-4))
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
 }

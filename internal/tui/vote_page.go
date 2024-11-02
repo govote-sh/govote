@@ -48,6 +48,7 @@ func (m model) viewVote() string {
 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
 		lipgloss.Top,
 		m.HeaderView(),
+		m.render.NewStyle().Foreground(lipgloss.Color("63")).MarginLeft(3).Render("Use tab to cycle through the lists of voting options"),
 		m.lm.ActiveList().View(),
 	))
 }

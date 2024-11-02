@@ -33,7 +33,7 @@ func main() {
 
 	srv, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath("./ssh/id_ed25519"),
+		wish.WithHostKeyPath("/data/govote"),
 		wish.WithMiddleware(
 			bubbletea.Middleware(tui.TeaHandler),
 			logging.Middleware(),

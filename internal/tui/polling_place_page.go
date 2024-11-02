@@ -59,7 +59,7 @@ func (m model) viewPollingPlace() string {
 	}
 
 	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
-		JoinNonEmptyVertical(
+		joinNonEmptyVertical(
 			lipgloss.Top,
 			m.HeaderView(),
 			title,
