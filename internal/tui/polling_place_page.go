@@ -95,7 +95,7 @@ func newPollingPlaceHoursTable(hours string) table.Model {
 	// Define columns for the table
 	columns := []table.Column{
 		{Title: "Day", Width: 20},
-		{Title: "Hours", Width: 15},
+		{Title: "Hours", Width: 24},
 	}
 
 	// Create rows based on polling hours

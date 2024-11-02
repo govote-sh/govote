@@ -57,7 +57,7 @@ func (m model) viewContestContent() string {
 		referendumInfo = append(referendumInfo, fmt.Sprintf("%s: %s", fieldLabelStyle(m.render, "Referendum Title"), fieldValueStyle(m.render, selectedContest.ReferendumTitle)))
 	}
 	if selectedContest.ReferendumText != "" {
-		referendumInfo = append(referendumInfo, fmt.Sprintf("%s:\n%s", fieldLabelStyle(m.render, "Referendum Text"), fieldValueStyle(m.render, utils.Wrap(selectedContest.ReferendumText, m.width-2))))
+		referendumInfo = append(referendumInfo, fmt.Sprintf("%s:\n%s", fieldLabelStyle(m.render, "Referendum Text"), fieldValueStyle(m.render, utils.Wrap(selectedContest.ReferendumText, m.width-4))))
 	}
 	if selectedContest.ReferendumSubtitle != "" {
 		referendumInfo = append(referendumInfo, fmt.Sprintf("%s: %s", fieldLabelStyle(m.render, "Subtitle"), fieldValueStyle(m.render, selectedContest.ReferendumSubtitle)))
