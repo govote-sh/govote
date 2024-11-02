@@ -62,22 +62,21 @@ const (
 func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	pty, _, _ := s.Pty()
 
-	// Set up the huh form for user input
 	form := huh.NewForm(
 		huh.NewGroup(
-			huh.NewInput().Title("Address").Key("address"),
+			huh.NewInput().Title("Street Address").Key("street").Placeholder("1234 W Broad St"),
+			huh.NewInput().Title("City").Key("city").Placeholder("Richmond"),
+			huh.NewInput().Title("State").Key("state").Placeholder("VA"),
+			huh.NewInput().Title("Postal Code").Key("postal_code").Placeholder("23220"),
 		),
 	)
 
 	r := bubbletea.MakeRenderer(s)
 
-	// Define the styles for the header and subtitle
-
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
 	spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 
-	// Create the model with the form, style, and spinner
 	m := model{
 		form:     form,
 		spinner:  spin,
@@ -126,14 +125,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.form = f.(*huh.Form)
 			cmds = append(cmds, cmd)
 		}
+
 		if m.form.State == huh.StateCompleted {
-			// Get the user input and switch to loading state
-			address := m.form.GetString("address")
+			street := m.form.GetString("street")
+			city := m.form.GetString("city")
+			state := m.form.GetString("state")
+			postalCode := m.form.GetString("postal_code")
+
+			// merge form contents
+			address := fmt.Sprintf("%s, %s, %s, %s", street, city, state, postalCode)
+
+			// Set the next page or state, such as loading page
 			m.currPage = loadingPage
 
-			// Return the CheckServer call as a tea.Cmd
+			// Return the CheckServer call as a tea.Cmd, using fullAddress or individual parts if needed
 			return m, tea.Batch(
-				m.spinner.Tick, // Start the spinner ticking
+				m.spinner.Tick,
 				func() tea.Msg {
 					return api.CheckServer(address)
 				},
