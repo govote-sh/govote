@@ -36,10 +36,6 @@ type model struct {
 	electionData *api.VoterInfoResponse
 	err          *utils.ErrMsg
 
-	// Header and subtitle styles
-	headerStyle   lipgloss.Style
-	subtitleStyle lipgloss.Style
-
 	// Lists
 	lm           *listManager.ListManager // List manager for the vote page
 	contestsList *list.Model              // List for the contests page
@@ -76,16 +72,6 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	r := bubbletea.MakeRenderer(s)
 
 	// Define the styles for the header and subtitle
-	headerStyle := r.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Align(lipgloss.Center).
-		Bold(true).
-		Padding(0, 1)
-
-	subtitleStyle := r.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Align(lipgloss.Center).
-		Padding(0, 1)
 
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
@@ -93,16 +79,14 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	// Create the model with the form, style, and spinner
 	m := model{
-		form:          form,
-		spinner:       spin,
-		currPage:      inputPage,
-		headerStyle:   headerStyle,   // Assign the header style
-		subtitleStyle: subtitleStyle, // Assign the subtitle style
-		width:         pty.Window.Width,
-		height:        pty.Window.Height,
-		render:        r,
-		hasMenu:       false,
-		help:          help.New(),
+		form:     form,
+		spinner:  spin,
+		currPage: inputPage,
+		width:    pty.Window.Width,
+		height:   pty.Window.Height,
+		render:   r,
+		hasMenu:  false,
+		help:     help.New(),
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
@@ -254,7 +238,17 @@ func (m model) viewReinputConfirmation() string {
 }
 
 func (m model) viewInput() string {
-	header := m.headerStyle.Render("Welcome to govote.sh!")
-	subtitle := m.subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
+	headerStyle := m.render.NewStyle().
+		Foreground(lipgloss.Color("205")).
+		Align(lipgloss.Center).
+		Bold(true).
+		Padding(0, 1)
+
+	subtitleStyle := m.render.NewStyle().
+		Foreground(lipgloss.Color("255")).
+		Align(lipgloss.Center).
+		Padding(0, 1)
+	header := headerStyle.Render("Welcome to govote.sh!")
+	subtitle := subtitleStyle.Render("Please enter your address to get election information from the Voting Information Project")
 	return fmt.Sprintf("%s\n%s\n\n%s", header, subtitle, m.form.View())
 }
