@@ -4,14 +4,14 @@ go 1.23.2
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.1.0
+	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/huh v0.6.0
-	github.com/charmbracelet/lipgloss v0.13.0
+	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/charmbracelet/log v0.4.0
-	github.com/charmbracelet/ssh v0.0.0-20240725163421-eb71b85b27aa
-	github.com/charmbracelet/wish v1.4.3
+	github.com/charmbracelet/ssh v0.0.0-20241211182756-4fe22b0f1b7c
+	github.com/charmbracelet/wish v1.4.4
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20241022195102-750a45fe5e47
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20241211175049-b4f1988a35de
 )
 
 require (
@@ -20,12 +20,12 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/charmbracelet/keygen v0.5.1 // indirect
-	github.com/charmbracelet/x/ansi v0.2.3 // indirect
+	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/charmbracelet/x/conpty v0.1.0 // indirect
 	github.com/charmbracelet/x/errors v0.0.0-20240508181413-e8d8b6e2de86 // indirect
 	github.com/charmbracelet/x/exp/strings v0.0.0-20240722160745-212f7b056ed0 // indirect
 	github.com/charmbracelet/x/input v0.2.0 // indirect
-	github.com/charmbracelet/x/term v0.2.0 // indirect
+	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/charmbracelet/x/termios v0.1.0 // indirect
 	github.com/creack/pty v1.1.21 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
