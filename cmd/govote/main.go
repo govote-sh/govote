@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"net"
 	"os"
 	"os/signal"
@@ -31,9 +32,13 @@ func main() {
 		log.Error("Could not set up secrets", "error", err)
 	}
 
+	flagHostKeyPath := flag.String("keypath", ".ssh/govote", "Path to the SSH host key")
+	flag.Parse()
+	hostKeyPath := *flagHostKeyPath
+
 	srv, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath("/data/govote"),
+		wish.WithHostKeyPath(hostKeyPath),
 		wish.WithMiddleware(
 			bubbletea.Middleware(tui.TeaHandler),
 			logging.Middleware(),
