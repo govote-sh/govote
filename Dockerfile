@@ -1,5 +1,5 @@
 # Ensure uniform casing for Dockerfile keywords
-ARG GO_VERSION=1.23
+ARG GO_VERSION=1.23.4
 FROM golang:${GO_VERSION}-bookworm AS builder
 
 WORKDIR /usr/src/app
@@ -18,4 +18,4 @@ FROM debian:bookworm
 
 # Copy the compiled binary into the runtime image
 COPY --from=builder /run-app /usr/local/bin/
-CMD ["run-app"]
+CMD ["run-app", "-keypath", "/data/govote"]
