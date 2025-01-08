@@ -11,7 +11,7 @@ require (
 	github.com/charmbracelet/ssh v0.0.0-20241211182756-4fe22b0f1b7c
 	github.com/charmbracelet/wish v1.4.4
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20241211175049-b4f1988a35de
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20250106144430-8929309228b4
 )
 
 require (
