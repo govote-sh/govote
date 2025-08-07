@@ -1,6 +1,5 @@
-# Ensure uniform casing for Dockerfile keywords
-ARG GO_VERSION=1.24.0
-FROM golang:${GO_VERSION}-bookworm AS builder
+ARG GO_VERSION=1.24.5
+FROM golang:${GO_VERSION}-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -12,10 +11,12 @@ RUN go mod download && go mod verify
 COPY . .
 
 # Specify the build path to the cmd/govote directory
-RUN go build -v -o /run-app ./cmd/govote
+RUN CGO_ENABLED=0 go build -v -o /run-app ./cmd/govote
 
-FROM debian:bookworm
+FROM gcr.io/distroless/static-debian12
 
 # Copy the compiled binary into the runtime image
 COPY --from=builder /run-app /usr/local/bin/
-CMD ["run-app", "-keypath", "/data/govote"]
+
+ENTRYPOINT ["/usr/local/bin/run-app"]
+CMD ["-keypath", "/data/govote"]
