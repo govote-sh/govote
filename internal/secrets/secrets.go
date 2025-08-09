@@ -20,7 +20,7 @@ func SetupSecrets() error {
 // GetAPIKey retrieves the cached API key.
 func GetAPIKey() (string, error) {
 	if apiKey == "" {
-		return "", errors.New("API key not initialized.")
+		return "", errors.New("API key not initialized")
 	}
 	return apiKey, nil
 }

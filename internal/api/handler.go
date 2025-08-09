@@ -41,12 +41,16 @@ func CheckServer(address string) tea.Msg {
 		log.Error("Could not perform HTTP GET request", "error", err)
 		return utils.ErrMsg{Err: err}
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Printf("error closing response body: %v", err)
+		}
+	}()
 
 	// Check for non-200 response codes
 	if res.StatusCode != http.StatusOK {
 		return utils.ErrMsg{
-			Err:            fmt.Errorf("Received non-200 response: %s", res.Status),
+			Err:            fmt.Errorf("received non-200 response: %s", res.Status),
 			HTTPStatusCode: res.StatusCode,
 		}
 	}

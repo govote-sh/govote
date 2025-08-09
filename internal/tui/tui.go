@@ -126,7 +126,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 
-		if m.form.State == huh.StateCompleted {
+		switch m.form.State {
+		case huh.StateCompleted:
 			street := m.form.GetString("street")
 			city := m.form.GetString("city")
 			state := m.form.GetString("state")
@@ -145,7 +146,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return api.CheckServer(address)
 				},
 			)
-		} else if m.form.State == huh.StateAborted {
+		case huh.StateAborted:
 			return m, tea.Quit
 		}
 	case loadingPage:
