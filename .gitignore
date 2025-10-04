@@ -28,3 +28,4 @@ go.work
 
 cmd/govote/.ssh
 cmd/govote/govote
+.ssh/
