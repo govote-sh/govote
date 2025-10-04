@@ -43,7 +43,7 @@ func CheckServer(address string) tea.Msg {
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Printf("error closing response body: %v", err)
+			log.Error("error closing response body", "error", err)
 		}
 	}()
 
