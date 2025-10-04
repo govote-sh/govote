@@ -27,9 +27,13 @@ const (
 )
 
 func main() {
+	log.SetLevel(log.InfoLevel)
+	log.SetReportTimestamp(true)
+	log.SetTimeFormat("2006-01-02 15:04:05")
+
 	err := secrets.SetupSecrets()
 	if err != nil {
-		log.Error("Could not set up secrets", "error", err)
+		log.Fatal("Failed to initialize secrets", "error", err)
 	}
 
 	flagHostKeyPath := flag.String("keypath", ".ssh/govote", "Path to the SSH host key")
@@ -48,7 +52,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Error("Could not start server", "error", err)
+		log.Fatal("Failed to create SSH server", "error", err, "host", host, "port", port)
 	}
 
 	done := make(chan os.Signal, 1)
@@ -56,7 +60,7 @@ func main() {
 	log.Info("Starting SSH server", "host", host, "port", port)
 	go func() {
 		if err = srv.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-			log.Error("Could not start server", "error", err)
+			log.Error("SSH server failed", "error", err, "host", host, "port", port)
 			done <- nil
 		}
 	}()
@@ -67,6 +71,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() { cancel() }()
 	if err := srv.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-		log.Error("Could not stop server", "error", err)
+		log.Error("Failed to shutdown SSH server gracefully", "error", err)
 	}
 }
