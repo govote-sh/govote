@@ -27,7 +27,16 @@ const (
 )
 
 func main() {
-	log.SetLevel(log.InfoLevel)
+	// Configure log level from environment variable, default to INFO
+	logLevel := log.InfoLevel
+	if levelStr := os.Getenv("LOG_LEVEL"); levelStr != "" {
+		if parsedLevel, err := log.ParseLevel(levelStr); err == nil {
+			logLevel = parsedLevel
+		} else {
+			log.Warn("Invalid LOG_LEVEL, using INFO", "value", levelStr, "error", err)
+		}
+	}
+	log.SetLevel(logLevel)
 	log.SetReportTimestamp(true)
 	log.SetTimeFormat("2006-01-02 15:04:05")
 
