@@ -22,7 +22,22 @@ func (m model) updateContestContent(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) viewContestContent() string {
-	selectedContest := m.contestsList.SelectedItem().(api.Contest)
+	// Check if contestsList is nil
+	if m.contestsList == nil {
+		return m.renderPageError("No contest selected")
+	}
+
+	// Check if selected item exists
+	selectedItem := m.contestsList.SelectedItem()
+	if selectedItem == nil {
+		return m.renderPageError("No contest selected")
+	}
+
+	// Type assert with safety check
+	selectedContest, ok := selectedItem.(api.Contest)
+	if !ok {
+		return m.renderPageError("Invalid contest data")
+	}
 
 	// Title styling
 	title := sectionTitleStyle(m.render, "Contest Details")

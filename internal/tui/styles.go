@@ -17,6 +17,17 @@ func (m model) RenderErrorBox(text string) string {
 	)
 }
 
+// renderPageError renders a full page with header and error message
+func (m model) renderPageError(message string) string {
+	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
+		lipgloss.JoinVertical(
+			lipgloss.Top,
+			m.HeaderView(),
+			m.RenderErrorBox(message),
+		),
+	)
+}
+
 func sectionTitleStyle(r *lipgloss.Renderer, text string) string {
 	return r.NewStyle().
 		Foreground(lipgloss.Color("205")).
