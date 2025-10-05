@@ -11,7 +11,22 @@ import (
 )
 
 func (m model) viewPollingPlace() string {
-	selectedPollingPlace := m.lm.SelectedItem().(api.PollingPlace)
+	// Check if list manager is nil
+	if m.lm == nil {
+		return m.renderPageError("No polling place selected")
+	}
+
+	// Check if selected item exists
+	selectedItem := m.lm.SelectedItem()
+	if selectedItem == nil {
+		return m.renderPageError("No polling place selected")
+	}
+
+	// Type assert with safety check
+	selectedPollingPlace, ok := selectedItem.(api.PollingPlace)
+	if !ok {
+		return m.renderPageError("Invalid polling place data")
+	}
 
 	// Title and bold styles
 	titleStyle := m.render.NewStyle().
