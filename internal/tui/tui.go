@@ -15,6 +15,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish/bubbletea"
+	"github.com/govote-sh/govote/internal/address"
 	"github.com/govote-sh/govote/internal/api"
 	"github.com/govote-sh/govote/internal/listManager"
 	"github.com/govote-sh/govote/internal/utils"
@@ -154,30 +155,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.form.State {
 		case huh.StateCompleted:
-			// Trim whitespace from all fields
-			street := strings.TrimSpace(m.form.GetString("street"))
-			city := strings.TrimSpace(m.form.GetString("city"))
-			state := strings.TrimSpace(m.form.GetString("state"))
-			postalCode := strings.TrimSpace(m.form.GetString("postal_code"))
+			// Create InputAddress from form fields
+			addr := address.InputAddress{
+				Street:     strings.TrimSpace(m.form.GetString("street")),
+				City:       strings.TrimSpace(m.form.GetString("city")),
+				State:      strings.TrimSpace(m.form.GetString("state")),
+				PostalCode: strings.TrimSpace(m.form.GetString("postal_code")),
+			}
 
 			// Require at least one non-empty field
-			if street == "" && city == "" && state == "" && postalCode == "" {
+			if addr.IsEmpty() {
 				m.err = &utils.ErrMsg{Err: fmt.Errorf("at least one address field is required")}
 				m.currPage = reinputConfirmationPage
 				return m, nil
 			}
 
-			// merge form contents
-			address := fmt.Sprintf("%s, %s, %s, %s", street, city, state, postalCode)
-
 			// Set the next page or state, such as loading page
 			m.currPage = loadingPage
 
-			// Return the CheckServer call as a tea.Cmd, using fullAddress or individual parts if needed
+			// Return the CheckServer call as a tea.Cmd
 			return m, tea.Batch(
 				m.spinner.Tick,
 				func() tea.Msg {
-					return api.CheckServer(address)
+					return api.CheckServer(addr)
 				},
 			)
 		case huh.StateAborted:

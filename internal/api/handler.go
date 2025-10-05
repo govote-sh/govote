@@ -10,13 +10,14 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
+	"github.com/govote-sh/govote/internal/address"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/utils"
 )
 
 const baseURL = "https://www.googleapis.com/civicinfo/v2/voterinfo"
 
-func CheckServer(address string) tea.Msg {
+func CheckServer(addr address.InputAddress) tea.Msg {
 	c := &http.Client{Timeout: 10 * time.Second}
 
 	apiKey, err := secrets.GetAPIKey()
@@ -32,7 +33,7 @@ func CheckServer(address string) tea.Msg {
 	// Query params
 	params := url.Values{}
 	params.Add("key", apiKey)
-	params.Add("address", address)
+	params.Add("address", addr.String())
 	base.RawQuery = params.Encode()
 
 	// Perform the HTTP GET request
