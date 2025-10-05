@@ -62,10 +62,9 @@ const (
 	pollingPlacePage
 )
 
-func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	pty, _, _ := s.Pty()
-
-	form := huh.NewForm(
+// createAddressForm creates the address input form with validation
+func createAddressForm() *huh.Form {
+	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Street Address").
@@ -97,6 +96,12 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 				}),
 		),
 	)
+}
+
+func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, _ := s.Pty()
+
+	form := createAddressForm()
 
 	r := bubbletea.MakeRenderer(s)
 
@@ -212,11 +217,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Wait for any key press to continue
 		if _, ok := msg.(tea.KeyMsg); ok {
 			// Reset the form and return to input state
-			m.form = huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().Title("Address").Key("address"),
-				),
-			)
+			m.form = createAddressForm()
 			m.form.Init()
 			m.err = nil
 			m.currPage = inputPage
