@@ -2,6 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
@@ -64,10 +66,34 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	form := huh.NewForm(
 		huh.NewGroup(
-			huh.NewInput().Title("Street Address").Key("street").Placeholder("1234 W Broad St"),
-			huh.NewInput().Title("City").Key("city").Placeholder("Richmond"),
-			huh.NewInput().Title("State").Key("state").Placeholder("VA"),
-			huh.NewInput().Title("Postal Code").Key("postal_code").Placeholder("23220"),
+			huh.NewInput().
+				Title("Street Address").
+				Key("street").
+				Placeholder("1234 W Broad St"),
+			huh.NewInput().
+				Title("City").
+				Key("city").
+				Placeholder("Richmond"),
+			huh.NewInput().
+				Title("State").
+				Key("state").
+				Placeholder("VA"),
+			huh.NewInput().
+				Title("Postal Code").
+				Key("postal_code").
+				Placeholder("23220").
+				Validate(func(s string) error {
+					s = strings.TrimSpace(s)
+					if len(s) == 0 {
+						return nil // Allow empty
+					}
+					// Match 5 digits or 5+4 format (12345 or 12345-6789)
+					matched, _ := regexp.MatchString(`^\d{5}(-\d{4})?$`, s)
+					if !matched {
+						return fmt.Errorf("postal code must be 5 digits (e.g. 23220) or 9 digits (e.g. 23220-1234)")
+					}
+					return nil
+				}),
 		),
 	)
 
@@ -128,10 +154,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.form.State {
 		case huh.StateCompleted:
-			street := m.form.GetString("street")
-			city := m.form.GetString("city")
-			state := m.form.GetString("state")
-			postalCode := m.form.GetString("postal_code")
+			// Trim whitespace from all fields
+			street := strings.TrimSpace(m.form.GetString("street"))
+			city := strings.TrimSpace(m.form.GetString("city"))
+			state := strings.TrimSpace(m.form.GetString("state"))
+			postalCode := strings.TrimSpace(m.form.GetString("postal_code"))
+
+			// Require at least one non-empty field
+			if street == "" && city == "" && state == "" && postalCode == "" {
+				m.err = &utils.ErrMsg{Err: fmt.Errorf("at least one address field is required")}
+				m.currPage = reinputConfirmationPage
+				return m, nil
+			}
 
 			// merge form contents
 			address := fmt.Sprintf("%s, %s, %s, %s", street, city, state, postalCode)
