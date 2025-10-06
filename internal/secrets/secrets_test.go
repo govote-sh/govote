@@ -20,6 +20,7 @@ func TestSecretsHappyPath(t *testing.T) {
 
 func TestSetupSecrets_MissingAPIKey(t *testing.T) {
 	apiKey = "" // Reset global state
+	t.Setenv("API_KEY", "") // Explicitly set to empty to override shell environment
 	err := SetupSecrets()
 	assert.Error(t, err)
 }
