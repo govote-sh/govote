@@ -1,6 +1,6 @@
 module github.com/govote-sh/govote
 
-go 1.25.1
+go 1.25.2
 
 require (
 	github.com/charmbracelet/bubbles v0.21.0
@@ -11,7 +11,7 @@ require (
 	github.com/charmbracelet/ssh v0.0.0-20250826160808-ebfa259c7309
 	github.com/charmbracelet/wish v1.4.7
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20250927194341-2beaa59a3c99
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20251009181029-0b7aa0cfb07b
 )
 
 require (
