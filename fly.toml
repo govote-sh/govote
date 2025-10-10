@@ -8,7 +8,7 @@ primary_region = 'iad'
 
 [build]
 [build.args]
-GO_VERSION = '1.25.1'
+GO_VERSION = '1.25.2'
 
 [env]
 PORT = '8080'
