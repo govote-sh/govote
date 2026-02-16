@@ -13,7 +13,7 @@ COPY . .
 # Specify the build path to the cmd/govote directory
 RUN CGO_ENABLED=0 go build -v -o /run-app ./cmd/govote
 
-FROM gcr.io/distroless/static-debian12
+FROM gcr.io/distroless/static-debian13
 
 # Copy the compiled binary into the runtime image
 COPY --from=builder /run-app /usr/local/bin/
