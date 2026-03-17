@@ -11,7 +11,7 @@ require (
 	charm.land/wish/v2 v2.0.0
 	github.com/charmbracelet/ssh v0.0.0-20250826160808-ebfa259c7309
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20260213171211-a408498e5541
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20260311141749-982eaa62dfb7
 )
 
 require (
