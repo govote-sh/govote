@@ -215,10 +215,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if _, ok := msg.(tea.KeyPressMsg); ok {
 			// Reset the form and return to input state
 			m.form = createAddressForm()
-			m.form.Init()
 			m.err = nil
 			m.currPage = inputPage
-			return m, nil
+			return m, m.form.Init()
 		}
 	case votePage:
 		return m.UpdateVote(msg)
