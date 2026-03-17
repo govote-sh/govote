@@ -20,6 +20,8 @@ import (
 	"github.com/govote-sh/govote/internal/utils"
 )
 
+var postalCodeRe = regexp.MustCompile(`^\d{5}(-\d{4})?$`)
+
 type model struct {
 	// Input
 	form *huh.Form
@@ -86,8 +88,7 @@ func createAddressForm() *huh.Form {
 						return nil // Allow empty
 					}
 					// Match 5 digits or 5+4 format (12345 or 12345-6789)
-					matched, _ := regexp.MatchString(`^\d{5}(-\d{4})?$`, s)
-					if !matched {
+					if !postalCodeRe.MatchString(s) {
 						return fmt.Errorf("postal code must be 5 digits (e.g. 23220) or 9 digits (e.g. 23220-1234)")
 					}
 					return nil
