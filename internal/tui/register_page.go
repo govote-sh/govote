@@ -4,28 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	"github.com/govote-sh/govote/internal/api"
 )
 
-func formatElectionAdministration(admin api.ElectionAdministrationBody, render *lipgloss.Renderer) string {
+func formatElectionAdministration(admin api.ElectionAdministrationBody) string {
 	var sections []string
 
-	// sectionTitleStyle := render.NewStyle().
-	// 	Foreground(lipgloss.Color("205")).
-	// 	Bold(true).
-	// 	Render
-	// fieldLabelStyle := render.NewStyle().
-	// 	Foreground(lipgloss.Color("255")).
-	// 	Bold(true).
-	// 	Render
-	// fieldValueStyle := render.NewStyle().
-	// 	Foreground(lipgloss.Color("63")).
-	// 	Render
-
 	// Title for Election Administration section
-	sections = append(sections, sectionTitleStyle(render, "Election Administration"))
-	sections = append(sections, fieldValueStyle(render, admin.Name))
+	sections = append(sections, sectionTitleStyle("Election Administration"))
+	sections = append(sections, fieldValueStyle(admin.Name))
 
 	// Append URLs if they exist
 	urlFields := []struct {
@@ -42,46 +30,46 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody, render *
 	}
 	for _, field := range urlFields {
 		if field.value != "" {
-			sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(render, field.label), fieldValueStyle(render, field.value)))
+			sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(field.label), fieldValueStyle(field.value)))
 		}
 	}
 
 	// Append Hours of Operation if they exist
 	if admin.HoursOfOperation != "" {
-		sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle(render, "Hours of Operation"), fieldValueStyle(render, admin.HoursOfOperation)))
+		sections = append(sections, fmt.Sprintf("%s: %s", fieldLabelStyle("Hours of Operation"), fieldValueStyle(admin.HoursOfOperation)))
 	}
 
 	// Voter Services if they exist
 	if len(admin.VoterServices) > 0 {
-		sections = append(sections, sectionTitleStyle(render, "Voter Services"))
-		sections = append(sections, fieldValueStyle(render, strings.Join(admin.VoterServices, ", ")))
+		sections = append(sections, sectionTitleStyle("Voter Services"))
+		sections = append(sections, fieldValueStyle(strings.Join(admin.VoterServices, ", ")))
 	}
 
 	// Correspondence Address
 	if admin.CorrespondenceAddress != (api.Address{}) {
-		sections = append(sections, sectionTitleStyle(render, "Correspondence Address"))
-		sections = append(sections, fieldValueStyle(render, admin.CorrespondenceAddress.String()))
+		sections = append(sections, sectionTitleStyle("Correspondence Address"))
+		sections = append(sections, fieldValueStyle(admin.CorrespondenceAddress.String()))
 	}
 
 	// Physical Address
 	if admin.PhysicalAddress != (api.Address{}) {
-		sections = append(sections, sectionTitleStyle(render, "Physical Address"))
-		sections = append(sections, fieldValueStyle(render, admin.PhysicalAddress.String()))
+		sections = append(sections, sectionTitleStyle("Physical Address"))
+		sections = append(sections, fieldValueStyle(admin.PhysicalAddress.String()))
 	}
 
 	// Election Officials
 	if len(admin.ElectionOfficials) > 0 {
-		sections = append(sections, sectionTitleStyle(render, "Election Officials"))
+		sections = append(sections, sectionTitleStyle("Election Officials"))
 		for _, official := range admin.ElectionOfficials {
-			officialInfo := []string{fieldValueStyle(render, official.Name)}
+			officialInfo := []string{fieldValueStyle(official.Name)}
 			if official.Title != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(render, official.Title)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(official.Title)))
 			}
 			if official.OfficePhoneNumber != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(render, official.OfficePhoneNumber)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(official.OfficePhoneNumber)))
 			}
 			if official.EmailAddress != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(render, official.EmailAddress)))
+				officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(official.EmailAddress)))
 			}
 			sections = append(sections, strings.Join(officialInfo, ", "))
 		}
@@ -90,11 +78,11 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody, render *
 	return strings.Join(sections, "\n")
 }
 
-func formatStateResource(state api.State, render *lipgloss.Renderer) string {
+func formatStateResource(state api.State) string {
 	var stateDisplay []string
 
 	// Main header for State
-	mainHeaderStyle := render.NewStyle().
+	mainHeaderStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("205")).
 		Background(lipgloss.Color("63")).
@@ -102,11 +90,11 @@ func formatStateResource(state api.State, render *lipgloss.Renderer) string {
 		Render
 	stateDisplay = append(stateDisplay, mainHeaderStyle(fmt.Sprintf("Register in %s", state.Name)))
 
-	stateDisplay = append(stateDisplay, formatElectionAdministration(state.ElectionAdministrationBody, render))
+	stateDisplay = append(stateDisplay, formatElectionAdministration(state.ElectionAdministrationBody))
 
 	if state.LocalJurisdiction != nil {
-		stateDisplay = append(stateDisplay, render.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render("Local Jurisdiction: "+state.LocalJurisdiction.Name))
-		stateDisplay = append(stateDisplay, formatElectionAdministration(state.LocalJurisdiction.ElectionAdministrationBody, render))
+		stateDisplay = append(stateDisplay, lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render("Local Jurisdiction: "+state.LocalJurisdiction.Name))
+		stateDisplay = append(stateDisplay, formatElectionAdministration(state.LocalJurisdiction.ElectionAdministrationBody))
 	}
 
 	return strings.Join(stateDisplay, "\n\n")
@@ -117,8 +105,8 @@ func (m model) viewRegister() string {
 		return "No registration information available."
 	}
 
-	stateInfo := formatStateResource(m.electionData.State[0], m.render)
-	return m.render.NewStyle().Margin(1, 2).MaxWidth(m.width).MaxHeight(m.height).Render(
+	stateInfo := formatStateResource(m.electionData.State[0])
+	return lipgloss.NewStyle().Margin(1, 2).MaxWidth(m.width).MaxHeight(m.height).Render(
 		lipgloss.JoinVertical(
 			lipgloss.Top,
 			m.HeaderView(),

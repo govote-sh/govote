@@ -5,16 +5,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/list"
-	spinner "github.com/charmbracelet/bubbles/spinner"
-	huh "github.com/charmbracelet/huh"
-	"github.com/charmbracelet/log"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/list"
+	spinner "charm.land/bubbles/v2/spinner"
+	huh "charm.land/huh/v2"
+	"charm.land/log/v2"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/ssh"
-	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/govote-sh/govote/internal/address"
 	"github.com/govote-sh/govote/internal/api"
 	"github.com/govote-sh/govote/internal/listManager"
@@ -26,7 +25,6 @@ type model struct {
 	form *huh.Form
 
 	// Style & Bubbles
-	render  *lipgloss.Renderer
 	spinner spinner.Model
 
 	// Help menu
@@ -103,11 +101,10 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	form := createAddressForm()
 
-	r := bubbletea.MakeRenderer(s)
-
-	spin := spinner.New()
-	spin.Spinner = spinner.Dot
-	spin.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	spin := spinner.New(
+		spinner.WithSpinner(spinner.Dot),
+		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
+	)
 
 	m := model{
 		form:     form,
@@ -115,11 +112,10 @@ func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		currPage: inputPage,
 		width:    pty.Window.Width,
 		height:   pty.Window.Height,
-		render:   r,
 		hasMenu:  false,
 		help:     help.New(),
 	}
-	return m, []tea.ProgramOption{tea.WithAltScreen()}
+	return m, nil
 }
 
 func (m model) Init() tea.Cmd {
@@ -215,7 +211,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case reinputConfirmationPage:
 		// Wait for any key press to continue
-		if _, ok := msg.(tea.KeyMsg); ok {
+		if _, ok := msg.(tea.KeyPressMsg); ok {
 			// Reset the form and return to input state
 			m.form = createAddressForm()
 			m.form.Init()
@@ -238,26 +234,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m model) View() string {
+func (m model) View() tea.View {
+	var body string
 	switch m.currPage {
 	case inputPage:
-		return m.viewInput()
+		body = m.viewInput()
 	case loadingPage:
-		return fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
+		body = fmt.Sprintf("%s Loading election information, please wait...\n\n", m.spinner.View())
 	case reinputConfirmationPage:
-		return m.viewReinputConfirmation()
+		body = m.viewReinputConfirmation()
 	case votePage:
-		return m.viewVote()
+		body = m.viewVote()
 	case contestsPage:
-		return m.viewContests()
+		body = m.viewContests()
 	case contestContentPage:
-		return m.viewContestContent()
+		body = m.viewContestContent()
 	case registerPage:
-		return m.viewRegister()
+		body = m.viewRegister()
 	case pollingPlacePage:
-		return m.viewPollingPlace()
+		body = m.viewPollingPlace()
 	}
-	return ""
+	return tea.View{Content: body, AltScreen: true}
 }
 
 func (m model) viewReinputConfirmation() string {
@@ -273,7 +270,7 @@ func (m model) viewReinputConfirmation() string {
 		errorMsg = fmt.Sprintf("Error: %v", m.err.Err.Error())
 	}
 
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+	return lipgloss.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
 		lipgloss.Top,
 		errorMsg,
 		"Press any key to continue...",
@@ -281,13 +278,13 @@ func (m model) viewReinputConfirmation() string {
 }
 
 func (m model) viewInput() string {
-	headerStyle := m.render.NewStyle().
+	headerStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("205")).
 		Align(lipgloss.Center).
 		Bold(true).
 		Padding(0, 1)
 
-	subtitleStyle := m.render.NewStyle().
+	subtitleStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("255")).
 		Align(lipgloss.Center).
 		Padding(0, 1)
