@@ -12,8 +12,7 @@ func (m model) InitContestsList() *list.Model {
 	for _, contest := range m.electionData.Contests {
 		items = append(items, list.Item(contest))
 	}
-	model := list.New(items, list.NewDefaultDelegate(), m.width, m.height)
-	model.SetHeight(m.height - 4)
+	model := list.New(items, list.NewDefaultDelegate(), m.width, m.height-4)
 	return &model
 }
 
