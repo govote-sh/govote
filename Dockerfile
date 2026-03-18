@@ -18,7 +18,5 @@ FROM gcr.io/distroless/static-debian13
 # Copy the compiled binary into the runtime image
 COPY --from=builder /run-app /usr/local/bin/
 
-USER 65532:65532
-
 ENTRYPOINT ["/usr/local/bin/run-app"]
 CMD ["-keypath", "/data/govote"]
