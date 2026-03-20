@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,7 +38,11 @@ func CheckServer(addr address.InputAddress) tea.Msg {
 	base.RawQuery = params.Encode()
 
 	// Perform the HTTP GET request
-	res, err := c.Get(base.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, base.String(), nil)
+	if err != nil {
+		return utils.ErrMsg{Err: err}
+	}
+	res, err := c.Do(req)
 	if err != nil {
 		log.Error("Could not perform HTTP GET request", "error", err)
 		return utils.ErrMsg{Err: err}
