@@ -40,7 +40,7 @@ issues:
   max-same-issues: 0
 formatters:
   enable:
-    #- gofumpt
-    #- goimports
+    - gofumpt
+    - goimports
   exclusions:
     generated: lax
