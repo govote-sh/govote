@@ -59,7 +59,6 @@ func main() {
 		wish.WithIdleTimeout(8*time.Minute),
 		wish.WithMaxTimeout(60*time.Minute),
 	)
-
 	if err != nil {
 		log.Fatal("Failed to create SSH server", "error", err, "host", host, "port", port)
 	}
