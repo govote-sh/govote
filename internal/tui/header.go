@@ -3,9 +3,9 @@ package tui
 import (
 	"fmt"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/table"
 )
 
 func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
@@ -13,7 +13,7 @@ func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
 		return m, nil
 	}
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		// Or directly navigate to a specific tab
 		case "v", "V":
@@ -31,9 +31,9 @@ func (m model) HeaderUpdate(msg tea.Msg) (model, tea.Cmd) {
 
 func (m model) HeaderView() string {
 	// Define the styles for active and inactive tabs
-	activeTabStyle := m.render.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render
-	inactiveTabStyle := m.render.NewStyle().Foreground(lipgloss.Color("240")).Render
-	letterStyle := m.render.NewStyle().Foreground(lipgloss.Color("205")).Render // Always active style for letter indicators
+	activeTabStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render
+	inactiveTabStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render
+	letterStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render // Always active style for letter indicators
 
 	// Define the tabs with letter indicators
 	title := activeTabStyle("govote.sh")
@@ -64,7 +64,7 @@ func (m model) HeaderView() string {
 		Row(tabs...).
 		Width(m.width - 2). // Add extra space to account for borders
 		StyleFunc(func(row, col int) lipgloss.Style {
-			return m.render.NewStyle().
+			return lipgloss.NewStyle().
 				Padding(0, 2). // Padding on both sides, including right
 				AlignHorizontal(lipgloss.Center)
 		}).

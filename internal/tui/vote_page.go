@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/govote-sh/govote/internal/api"
 	"github.com/govote-sh/govote/internal/listManager"
 )
@@ -17,7 +17,7 @@ func (m model) UpdateVote(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+	if keyMsg, ok := msg.(tea.KeyPressMsg); ok {
 		switch keyMsg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
@@ -45,10 +45,10 @@ func (m model) viewVote() string {
 	if m.lm == nil {
 		return "building list..."
 	}
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
+	return lipgloss.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(lipgloss.JoinVertical(
 		lipgloss.Top,
 		m.HeaderView(),
-		m.render.NewStyle().Foreground(lipgloss.Color("63")).MarginLeft(3).Render("Use tab to cycle through the lists of voting options"),
+		lipgloss.NewStyle().Foreground(lipgloss.Color("63")).MarginLeft(3).Render("Use tab to cycle through the lists of voting options"),
 		m.lm.ActiveList().View(),
 	))
 }

@@ -1,6 +1,6 @@
 package tui
 
-import "github.com/charmbracelet/lipgloss"
+import "charm.land/lipgloss/v2"
 
 func (m model) RenderErrorBox(text string) string {
 	const HEADER_HEIGHT = 3
@@ -19,7 +19,7 @@ func (m model) RenderErrorBox(text string) string {
 
 // renderPageError renders a full page with header and error message
 func (m model) renderPageError(message string) string {
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
+	return lipgloss.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
 		lipgloss.JoinVertical(
 			lipgloss.Top,
 			m.HeaderView(),
@@ -28,21 +28,21 @@ func (m model) renderPageError(message string) string {
 	)
 }
 
-func sectionTitleStyle(r *lipgloss.Renderer, text string) string {
-	return r.NewStyle().
+func sectionTitleStyle(text string) string {
+	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("205")).
 		Bold(true).
 		Render(text)
 }
 
-func fieldLabelStyle(r *lipgloss.Renderer, text string) string {
-	return r.NewStyle().
+func fieldLabelStyle(text string) string {
+	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("255")).
 		Render(text)
 }
 
-func fieldValueStyle(r *lipgloss.Renderer, text string) string {
-	return r.NewStyle().
+func fieldValueStyle(text string) string {
+	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("63")).
 		Render(text)
 }

@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/log"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/log/v2"
 	"github.com/govote-sh/govote/internal/address"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/utils"

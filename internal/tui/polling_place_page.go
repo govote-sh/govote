@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/table"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/govote-sh/govote/internal/api"
 )
 
@@ -29,13 +29,13 @@ func (m model) viewPollingPlace() string {
 	}
 
 	// Title and bold styles
-	titleStyle := m.render.NewStyle().
+	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("205")).
 		Background(lipgloss.Color("63")).
 		Padding(0, 1).
 		Render
-	boldStyle := m.render.NewStyle().Bold(true).Render
+	boldStyle := lipgloss.NewStyle().Bold(true).Render
 
 	title := titleStyle("Polling Place Details")
 
@@ -46,20 +46,20 @@ func (m model) viewPollingPlace() string {
 	// Notes (if any)
 	var notes string
 	if selectedPollingPlace.Notes != "" {
-		notes = boldStyle("Notes: ") + fieldValueStyle(m.render, selectedPollingPlace.Notes)
+		notes = boldStyle("Notes: ") + fieldValueStyle(selectedPollingPlace.Notes)
 	}
 
 	// Voter services (if any)
 	var voterServices string
 	if selectedPollingPlace.VoterServices != "" {
-		voterServices = boldStyle("Voter Services: ") + fieldValueStyle(m.render, selectedPollingPlace.VoterServices)
+		voterServices = boldStyle("Voter Services: ") + fieldValueStyle(selectedPollingPlace.VoterServices)
 	}
 
 	// Start and end dates (if any)
 	var dates string
 	if selectedPollingPlace.StartDate != "" && selectedPollingPlace.EndDate != "" {
 		if selectedPollingPlace.StartDate == selectedPollingPlace.EndDate {
-			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), fieldValueStyle(m.render, selectedPollingPlace.StartDate))
+			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), fieldValueStyle(selectedPollingPlace.StartDate))
 		} else {
 			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), selectedPollingPlace.StartDate, selectedPollingPlace.EndDate)
 		}
@@ -70,10 +70,10 @@ func (m model) viewPollingPlace() string {
 	// Latitude and Longitude (if any)
 	var coordinates string
 	if url, err := selectedPollingPlace.GetMapsUrl(); err == nil {
-		coordinates = boldStyle("Map link: ") + fieldValueStyle(m.render, url)
+		coordinates = boldStyle("Map link: ") + fieldValueStyle(url)
 	}
 
-	return m.render.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
+	return lipgloss.NewStyle().Margin(1, 1).MaxWidth(m.width).MaxHeight(m.height).Render(
 		joinNonEmptyVertical(
 			lipgloss.Top,
 			m.HeaderView(),
@@ -92,7 +92,7 @@ func (m model) viewPollingPlace() string {
 
 func (m model) updatePollingPlace(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Allow the user to exit by pressing "q" or "ctrl+c"
-	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+	if keyMsg, ok := msg.(tea.KeyPressMsg); ok {
 		switch keyMsg.String() {
 		case "esc":
 			if m.lm != nil && !m.lm.SettingFilter() {
