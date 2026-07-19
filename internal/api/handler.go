@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,19 +34,22 @@ func CheckServer(addr address.InputAddress) tea.Msg {
 
 	// Query params
 	params := url.Values{}
-	params.Add("key", apiKey)
 	params.Add("address", addr.String())
 	base.RawQuery = params.Encode()
 
-	// Perform the HTTP GET request
+	// Perform the HTTP GET request. The API key goes in a header, never the
+	// URL: a *url.Error stringifies with the full request URL, so a key in the
+	// query string would leak into logs and user-visible error messages.
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, base.String(), nil)
 	if err != nil {
 		return utils.ErrMsg{Err: err}
 	}
+	req.Header.Set("X-Goog-Api-Key", apiKey)
 	res, err := c.Do(req)
 	if err != nil {
 		log.Error("Could not perform HTTP GET request", "error", err)
-		return utils.ErrMsg{Err: err}
+		// Return a generic message: SSH users see this verbatim.
+		return utils.ErrMsg{Err: errors.New("could not reach the election information service")}
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
