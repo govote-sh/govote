@@ -148,6 +148,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	var next tea.Model = m
+	var pageCmd tea.Cmd
 	switch m.currPage {
 	case inputPage:
 		if m.form != nil {
@@ -222,18 +224,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.form.Init()
 		}
 	case votePage:
-		return m.UpdateVote(msg)
+		next, pageCmd = m.UpdateVote(msg)
 	case contestsPage:
-		return m.updateContests(msg)
+		next, pageCmd = m.updateContests(msg)
 	case contestContentPage:
-		return m.updateContestContent(msg)
+		next, pageCmd = m.updateContestContent(msg)
 	case registerPage:
-		return m, nil // TODO: Window size updates? Escapes?
+		// Header handles v/c/r/q; no page-specific keys yet.
 	case pollingPlacePage:
-		return m.updatePollingPlace(msg)
+		next, pageCmd = m.updatePollingPlace(msg)
 	}
 
-	return m, tea.Batch(cmds...)
+	cmds = append(cmds, pageCmd)
+	return next, tea.Batch(cmds...)
 }
 
 func (m model) View() tea.View {

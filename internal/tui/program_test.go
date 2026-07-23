@@ -120,3 +120,19 @@ func TestTabNavigationAcrossAllPages(t *testing.T) {
 	tm.Type("q")                                  // vote page binds q -> quit
 	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
 }
+
+// Regression test: HeaderUpdate's tea.Quit was discarded by the page
+// dispatch, so q was dead on pages whose handlers don't bind it themselves.
+func TestQQuitsOnRegisterPage(t *testing.T) {
+	tm := newTestProgram(t, newVotePageModel(80, 24))
+
+	teatest.WaitFor(t, tm.Output(), containsBytes("Main St Community Center"),
+		teatest.WithDuration(3*time.Second))
+
+	tm.Type("r")
+	teatest.WaitFor(t, tm.Output(), containsBytes("Register in Test State"),
+		teatest.WithDuration(3*time.Second))
+
+	tm.Type("q")
+	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
+}
