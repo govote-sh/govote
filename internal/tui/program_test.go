@@ -83,3 +83,40 @@ func TestSubmitTransportErrorShowsFriendlyMessage(t *testing.T) {
 		containsBytes("could not reach the election information service"),
 		teatest.WithDuration(3*time.Second))
 }
+
+// tm.Output() is CUMULATIVE — a WaitFor only proves a transition if its
+// string appears for the FIRST time on the page being entered. Every wait
+// below uses such a string; return-transitions (esc, v) have no new text,
+// so they're verified indirectly: the final pressEnter can only reach the
+// polling-place detail if esc/v actually landed back on the vote page.
+// Per-transition assertions belong in the model-level Update tests, not here.
+func TestTabNavigationAcrossAllPages(t *testing.T) {
+	tm := newTestProgram(t, newVotePageModel(80, 24))
+
+	wait := func(s string) {
+		t.Helper()
+		teatest.WaitFor(t, tm.Output(), containsBytes(s),
+			teatest.WithDuration(3*time.Second))
+	}
+
+	wait("Main St Community Center") // vote page list rendered
+
+	tm.Type("c") // -> contests
+	wait("Governor")
+
+	pressEnter(tm) // -> contest detail
+	wait("Alex Doe")
+
+	tm.Send(tea.KeyPressMsg{Code: tea.KeyEscape}) // back to contests
+
+	tm.Type("r") // -> register
+	wait("Register in Test State")
+
+	tm.Type("v")   // -> vote page
+	pressEnter(tm) // -> polling place detail (only reachable from vote page)
+	wait("Polling Place Details")
+
+	tm.Send(tea.KeyPressMsg{Code: tea.KeyEscape}) // back to vote page
+	tm.Type("q")                                  // vote page binds q -> quit
+	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
+}
