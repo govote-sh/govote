@@ -119,10 +119,23 @@ func newCandidateTable(candidates []api.Candidate) table.Model {
 			candidate.Party,
 		})
 	}
-	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(10))
+	// The table's internal viewport defaults to width 0 and renders rows as
+	// empty strings until an explicit width is set; the styles below have no
+	// cell padding, so the row width is exactly the sum of the column widths.
+	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(10), table.WithWidth(sumColumnWidths(columns)))
 	t.SetStyles(table.Styles{
 		Header: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")),
 		Cell:   lipgloss.NewStyle().Foreground(lipgloss.Color("255")),
 	})
 	return t
+}
+
+// sumColumnWidths returns the total rendered row width for a table whose
+// styles add no horizontal padding, which is how all tables here are styled.
+func sumColumnWidths(columns []table.Column) int {
+	width := 0
+	for _, c := range columns {
+		width += c.Width
+	}
+	return width
 }
