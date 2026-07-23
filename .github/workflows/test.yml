@@ -20,7 +20,7 @@ jobs:
       - name: Run tests with race detection
         run: go test -race -coverprofile=coverage.out ./...
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage.out
