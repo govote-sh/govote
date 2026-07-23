@@ -97,26 +97,28 @@ func createAddressForm() *huh.Form {
 	)
 }
 
-func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	pty, _, _ := s.Pty()
-
-	form := createAddressForm()
-
+// newModel constructs the initial model. Extracted from TeaHandler so tests
+// can build a model without an ssh.Session.
+func newModel(width, height int) model {
 	spin := spinner.New(
 		spinner.WithSpinner(spinner.Dot),
 		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
 	)
 
-	m := model{
-		form:     form,
+	return model{
+		form:     createAddressForm(),
 		spinner:  spin,
 		currPage: inputPage,
-		width:    pty.Window.Width,
-		height:   pty.Window.Height,
+		width:    width,
+		height:   height,
 		hasMenu:  false,
 		help:     help.New(),
 	}
-	return m, nil
+}
+
+func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, _ := s.Pty()
+	return newModel(pty.Window.Width, pty.Window.Height), nil
 }
 
 func (m model) Init() tea.Cmd {
