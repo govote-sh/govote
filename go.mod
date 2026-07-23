@@ -11,6 +11,7 @@ require (
 	charm.land/wish/v2 v2.0.1
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ssh v0.0.0-20250826160808-ebfa259c7309
+	github.com/charmbracelet/x/exp/golden v0.0.0-20260720091843-3eef36eaaa28
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20260720091843-3eef36eaaa28
 	github.com/muesli/reflow v0.3.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20260723152544-d701c51f7e4e
@@ -25,7 +26,6 @@ require (
 	github.com/charmbracelet/ultraviolet v0.0.0-20260703014108-f5a850f9c2b7 // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
 	github.com/charmbracelet/x/conpty v0.2.0 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260720091843-3eef36eaaa28 // indirect
 	github.com/charmbracelet/x/exp/ordered v0.1.0 // indirect
 	github.com/charmbracelet/x/exp/strings v0.1.0 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
