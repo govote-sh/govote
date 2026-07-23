@@ -1,6 +1,6 @@
 module github.com/govote-sh/govote
 
-go 1.26.3
+go 1.26.5
 
 require (
 	charm.land/bubbles/v2 v2.0.0
