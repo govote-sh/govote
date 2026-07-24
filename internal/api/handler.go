@@ -47,7 +47,13 @@ func CheckServer(addr address.InputAddress) tea.Msg {
 	req.Header.Set("X-Goog-Api-Key", apiKey)
 	res, err := c.Do(req)
 	if err != nil {
-		log.Error("Could not perform HTTP GET request", "error", err)
+		// Log the unwrapped error; the *url.Error carries the address-bearing URL.
+		loggedErr := err
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			loggedErr = urlErr.Err
+		}
+		log.Error("Could not perform HTTP GET request", "error", loggedErr)
 		// Return a generic message: SSH users see this verbatim.
 		return utils.ErrMsg{Err: errors.New("could not reach the election information service")}
 	}
