@@ -1,0 +1,24 @@
+                                                                                
+ ┌───────────────────┬──────────────────┬──────────────────┬──────────────────┐ 
+ │     \x1b[1;38;5;205mgovote.sh\x1b[m     │     \x1b[38;5;205m[V]\x1b[m \x1b[1;38;5;205mVote\x1b[m     │   \x1b[38;5;205m[C]\x1b[m \x1b[38;5;240mContests\x1b[m   │   \x1b[38;5;205m[R]\x1b[m \x1b[38;5;240mRegister\x1b[m   │ 
+ └───────────────────┴──────────────────┴──────────────────┴──────────────────┘ 
+    \x1b[38;5;63mUse tab to cycle through the lists of voting options\x1b[m                        
+   \x1b[48;5;62m \x1b[m\x1b[38;5;230;48;5;62mPolling Locations\x1b[m\x1b[48;5;62m \x1b[m                                                          
+                                                                                
+   \x1b[38;2;119;119;119m1 item\x1b[m                                                                       
+                                                                                
+ \x1b[38;2;173;88;180m│\x1b[m \x1b[38;2;238;111;248mMain St Community Center\x1b[m                                                     
+ \x1b[38;2;173;88;180m│\x1b[m \x1b[38;2;173;88;180mMain St Community Center, 100 Main St, Richmond, VA 23220\x1b[m                    
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

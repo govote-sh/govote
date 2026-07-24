@@ -1,0 +1,10 @@
+                                                                                
+  ┌───────────────────┬──────────────────┬──────────────────┬──────────────────┐
+  │     \x1b[1;38;5;205mgovote.sh\x1b[m     │     \x1b[38;5;205m[V]\x1b[m \x1b[38;5;240mVote\x1b[m     │   \x1b[38;5;205m[C]\x1b[m \x1b[38;5;240mContests\x1b[m   │   \x1b[38;5;205m[R]\x1b[m \x1b[1;38;5;205mRegister\x1b[m   │
+  └───────────────────┴──────────────────┴──────────────────┴──────────────────┘
+  \x1b[48;5;63m \x1b[m\x1b[1;38;5;205;48;5;63mRegister in Test State\x1b[m\x1b[48;5;63m \x1b[m                                                      
+                                                                                
+  \x1b[1;38;5;205mElection Administration\x1b[m                                                       
+  \x1b[38;5;63mTest State Board of Elections\x1b[m                                                 
+  \x1b[38;5;255mRegistration URL\x1b[m: \x1b[38;5;63mhttps://vote.example.gov/register\x1b[m                           
+                                                                                

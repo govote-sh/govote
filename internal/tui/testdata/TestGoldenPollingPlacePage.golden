@@ -1,0 +1,13 @@
+                                                                                
+ ┌──────────────────────────────────────┬─────────────────────────────────────┐ 
+ │              \x1b[1;38;5;205mgovote.sh\x1b[m               │             \x1b[38;5;205m[ESC]\x1b[m \x1b[38;5;240mBack\x1b[m              │ 
+ └──────────────────────────────────────┴─────────────────────────────────────┘ 
+ \x1b[48;5;63m \x1b[m\x1b[1;38;5;205;48;5;63mPolling Place Details\x1b[m\x1b[48;5;63m \x1b[m                                                        
+ \x1b[1mMain St Community Center, 100 Main St, Richmond, VA 23220\x1b[m                      
+                                                                                
+ \x1b[1;38;5;205mDay                 \x1b[m\x1b[1;38;5;205mHours                   \x1b[m                                   
+ \x1b[38;5;255mTuesday             \x1b[m\x1b[38;5;255m6:00 AM - 7:00 PM       \x1b[m                                   
+                                                                                
+ \x1b[1mDate\x1b[m: \x1b[38;5;63m2026-11-03\x1b[m                                                               
+ \x1b[1mMap link: \x1b[m\x1b[38;5;63mhttps://www.google.com/maps/search/?api=1&query=Main+St+Community+Cen\x1b[m
+                                                                                

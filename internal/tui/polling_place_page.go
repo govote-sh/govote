@@ -123,8 +123,10 @@ func newPollingPlaceHoursTable(hours string) table.Model {
 
 	tableHeight := min(15+1, len(rows)+1)
 
-	// Create the table model with the rows and columns
-	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(tableHeight))
+	// Create the table model with the rows and columns. The explicit width is
+	// required: the table's internal viewport defaults to width 0 and renders
+	// rows as empty strings until a width is set.
+	t := table.New(table.WithColumns(columns), table.WithRows(rows), table.WithHeight(tableHeight), table.WithWidth(sumColumnWidths(columns)))
 
 	t.SetStyles(table.Styles{
 		Header: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")),

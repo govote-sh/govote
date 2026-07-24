@@ -97,26 +97,28 @@ func createAddressForm() *huh.Form {
 	)
 }
 
-func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	pty, _, _ := s.Pty()
-
-	form := createAddressForm()
-
+// newModel constructs the initial model. Extracted from TeaHandler so tests
+// can build a model without an ssh.Session.
+func newModel(width, height int) model {
 	spin := spinner.New(
 		spinner.WithSpinner(spinner.Dot),
 		spinner.WithStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("205"))),
 	)
 
-	m := model{
-		form:     form,
+	return model{
+		form:     createAddressForm(),
 		spinner:  spin,
 		currPage: inputPage,
-		width:    pty.Window.Width,
-		height:   pty.Window.Height,
+		width:    width,
+		height:   height,
 		hasMenu:  false,
 		help:     help.New(),
 	}
-	return m, nil
+}
+
+func TeaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, _ := s.Pty()
+	return newModel(pty.Window.Width, pty.Window.Height), nil
 }
 
 func (m model) Init() tea.Cmd {
@@ -146,6 +148,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	var next tea.Model = m
+	var pageCmd tea.Cmd
 	switch m.currPage {
 	case inputPage:
 		if m.form != nil {
@@ -220,18 +224,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.form.Init()
 		}
 	case votePage:
-		return m.UpdateVote(msg)
+		next, pageCmd = m.UpdateVote(msg)
 	case contestsPage:
-		return m.updateContests(msg)
+		next, pageCmd = m.updateContests(msg)
 	case contestContentPage:
-		return m.updateContestContent(msg)
+		next, pageCmd = m.updateContestContent(msg)
 	case registerPage:
-		return m, nil // TODO: Window size updates? Escapes?
+		// Header handles v/c/r/q; no page-specific keys yet.
 	case pollingPlacePage:
-		return m.updatePollingPlace(msg)
+		next, pageCmd = m.updatePollingPlace(msg)
 	}
 
-	return m, tea.Batch(cmds...)
+	cmds = append(cmds, pageCmd)
+	return next, tea.Batch(cmds...)
 }
 
 func (m model) View() tea.View {
