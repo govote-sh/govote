@@ -41,51 +41,25 @@ type Address struct {
 }
 
 func (a Address) String() string {
-	var b strings.Builder
-	separator := ""
+	parts := make([]string, 0, 6)
 
-	if a.LocationName != "" {
-		b.WriteString(a.LocationName)
-		separator = ", "
-	}
-	if a.Line1 != "" {
-		b.WriteString(separator)
-		b.WriteString(a.Line1)
-		separator = ", "
-	}
-	if a.Line2 != "" {
-		b.WriteString(separator)
-		b.WriteString(a.Line2)
-	}
-	if a.Line3 != "" {
-		b.WriteString(separator)
-		b.WriteString(a.Line3)
-	}
-	if a.City != "" {
-		b.WriteString(separator)
-		b.WriteString(a.City)
-		separator = ", "
-	}
-	if a.State != "" {
-		b.WriteString(separator)
-		b.WriteString(a.State)
-	}
-	if a.Zip != "" {
-		// Add a space before the zip if there's a state present
-		if a.State != "" {
-			b.WriteString(" ")
-		} else {
-			b.WriteString(separator)
+	for _, component := range []string{a.LocationName, a.Line1, a.Line2, a.Line3, a.City} {
+		if component != "" {
+			parts = append(parts, component)
 		}
-		b.WriteString(a.Zip)
 	}
 
-	// If no components were written, return an empty string
-	if b.Len() == 0 {
-		return ""
+	// State and zip are one component: "VA 23220", not "VA, 23220".
+	switch {
+	case a.State != "" && a.Zip != "":
+		parts = append(parts, a.State+" "+a.Zip)
+	case a.State != "":
+		parts = append(parts, a.State)
+	case a.Zip != "":
+		parts = append(parts, a.Zip)
 	}
 
-	return b.String()
+	return strings.Join(parts, ", ")
 }
 
 // PollingPlace Resource (used for pollingLocations, earlyVoteSites, and dropOffLocations)
