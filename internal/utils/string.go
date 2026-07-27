@@ -13,9 +13,9 @@ func Wrap(s string, width int) string {
 	return wordwrap.String(s, width)
 }
 
-// EllipticalTruncate shortens text to at most maxLen runes, breaking at the last
-// space before the limit. maxLen counts runes but slicing counts bytes, so cuts
-// use range's byte offset; maxLen as an index would split a multi-byte rune.
+// EllipticalTruncate truncates text to at most maxLen runes of the original text,
+// breaking at the last space before the limit when possible, and appending "...".
+// maxLen counts runes but slicing counts bytes, so truncation uses range's byte offset.
 // https://stackoverflow.com/questions/59955085/how-can-i-elliptically-truncate-text-in-golang
 func EllipticalTruncate(text string, maxLen int) string {
 	lastSpaceIx := -1 // byte offset, -1 if no space yet
