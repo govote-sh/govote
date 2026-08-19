@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"charm.land/log/v2"
+	ssh "charm.land/ssh"
 	"charm.land/wish/v2"
 	"charm.land/wish/v2/bubbletea"
 	"charm.land/wish/v2/logging"
-	ssh "charm.land/ssh"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/tui"
 
