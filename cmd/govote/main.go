@@ -14,7 +14,7 @@ import (
 	"charm.land/wish/v2"
 	"charm.land/wish/v2/bubbletea"
 	"charm.land/wish/v2/logging"
-	"github.com/charmbracelet/ssh"
+	ssh "charm.land/ssh"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/tui"
 
