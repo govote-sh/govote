@@ -6,10 +6,6 @@
 app = 'govote'
 primary_region = 'iad'
 
-[build]
-[build.args]
-GO_VERSION = '1.26.5'
-
 [[services]]
 internal_port = 23234
 protocol = "tcp"
