@@ -27,6 +27,7 @@
 
 # End of https://www.toptal.com/developers/gitignore/api/go
 
-**/cmd/govote/.ssh
+**/.ssh
 **/cmd/govote/govote
+.git
 fly.toml
