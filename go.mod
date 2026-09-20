@@ -11,10 +11,9 @@ require (
 	charm.land/ssh v0.4.3
 	charm.land/wish/v2 v2.0.4
 	github.com/charmbracelet/colorprofile v0.4.3
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260720091843-3eef36eaaa28
-	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20260720091843-3eef36eaaa28
+	github.com/charmbracelet/x/exp/golden v0.0.0-20260920004010-53e2afe73ae5
+	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20260920004010-53e2afe73ae5
 	github.com/muesli/reflow v0.3.0
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20260723152544-d701c51f7e4e
 )
 
 require (
