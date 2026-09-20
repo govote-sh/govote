@@ -17,8 +17,6 @@ import (
 	"charm.land/wish/v2/logging"
 	"github.com/govote-sh/govote/internal/secrets"
 	"github.com/govote-sh/govote/internal/tui"
-
-	_ "golang.org/x/crypto/x509roots/fallback"
 )
 
 const (
