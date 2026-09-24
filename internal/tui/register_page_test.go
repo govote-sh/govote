@@ -8,8 +8,7 @@ import (
 	"github.com/govote-sh/govote/internal/api"
 )
 
-// Real Civic API payloads (e.g. Virginia) often list officials with no name,
-// which used to render as ", Office Phone: ...".
+// Seen in live Virginia data.
 func TestElectionOfficialWithoutNameHasNoLeadingComma(t *testing.T) {
 	admin := api.ElectionAdministrationBody{
 		Name: "Virginia Department of Elections",

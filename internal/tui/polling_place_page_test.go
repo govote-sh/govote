@@ -26,7 +26,6 @@ func TestFormatPollingDates(t *testing.T) {
 	}
 }
 
-// The range values used to skip fieldValueStyle, unlike every other field.
 func TestPollingDateRangeValuesAreStyled(t *testing.T) {
 	got := formatPollingDates("2026-10-20", "2026-11-01")
 	if want := fieldValueStyle("2026-10-20"); !strings.Contains(got, want) {

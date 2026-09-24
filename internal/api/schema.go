@@ -147,8 +147,7 @@ func (c Contest) Title() string {
 	return utils.EllipticalTruncate(c.displayTitle(), 80)
 }
 
-// displayTitle falls back to ReferendumTitle, then Office: ballotTitle is only
-// sent "where available", for ballot measures and candidate races alike.
+// displayTitle falls back when ballotTitle is absent (it is optional).
 func (c Contest) displayTitle() string {
 	if c.BallotTitle != "" {
 		return c.BallotTitle

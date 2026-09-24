@@ -132,8 +132,6 @@ func TestPollingPlaceGetMapsUrl(t *testing.T) {
 	})
 }
 
-// Ballot measures may have no ballotTitle ("only where available"), which left
-// a blank, unfilterable row in the contests list.
 func TestContestTitleFallsBackToReferendumTitle(t *testing.T) {
 	c := Contest{Type: "Referendum", ReferendumTitle: "Question 1: Constitutional Amendment"}
 
@@ -153,7 +151,6 @@ func TestContestTitlePrefersBallotTitle(t *testing.T) {
 	}
 }
 
-// ballotTitle is optional for candidate races too; fall back to the office.
 func TestContestTitleFallsBackToOffice(t *testing.T) {
 	c := Contest{Type: "General", Office: "County Sheriff"}
 
