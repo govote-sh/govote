@@ -152,3 +152,15 @@ func TestContestTitlePrefersBallotTitle(t *testing.T) {
 		t.Errorf("Title() = %q, want %q", got, "Governor")
 	}
 }
+
+// ballotTitle is optional for candidate races too; fall back to the office.
+func TestContestTitleFallsBackToOffice(t *testing.T) {
+	c := Contest{Type: "General", Office: "County Sheriff"}
+
+	if got := c.Title(); got != "County Sheriff" {
+		t.Errorf("Title() = %q, want %q", got, "County Sheriff")
+	}
+	if got := c.FilterValue(); got != "County Sheriff" {
+		t.Errorf("FilterValue() = %q, want %q", got, "County Sheriff")
+	}
+}
