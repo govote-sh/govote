@@ -61,7 +61,10 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody) string {
 	if len(admin.ElectionOfficials) > 0 {
 		sections = append(sections, sectionTitleStyle("Election Officials"))
 		for _, official := range admin.ElectionOfficials {
-			officialInfo := []string{fieldValueStyle(official.Name)}
+			var officialInfo []string
+			if official.Name != "" {
+				officialInfo = append(officialInfo, fieldValueStyle(official.Name))
+			}
 			if official.Title != "" {
 				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(official.Title)))
 			}
