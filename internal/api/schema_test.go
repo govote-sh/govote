@@ -131,3 +131,33 @@ func TestPollingPlaceGetMapsUrl(t *testing.T) {
 		}
 	})
 }
+
+func TestContestTitleFallsBackToReferendumTitle(t *testing.T) {
+	c := Contest{Type: "Referendum", ReferendumTitle: "Question 1: Constitutional Amendment"}
+
+	if got := c.Title(); got != c.ReferendumTitle {
+		t.Errorf("Title() = %q, want %q", got, c.ReferendumTitle)
+	}
+	if got := c.FilterValue(); got != c.ReferendumTitle {
+		t.Errorf("FilterValue() = %q, want %q", got, c.ReferendumTitle)
+	}
+}
+
+func TestContestTitlePrefersBallotTitle(t *testing.T) {
+	c := Contest{BallotTitle: "Governor", ReferendumTitle: "ignored"}
+
+	if got := c.Title(); got != "Governor" {
+		t.Errorf("Title() = %q, want %q", got, "Governor")
+	}
+}
+
+func TestContestTitleFallsBackToOffice(t *testing.T) {
+	c := Contest{Type: "General", Office: "County Sheriff"}
+
+	if got := c.Title(); got != "County Sheriff" {
+		t.Errorf("Title() = %q, want %q", got, "County Sheriff")
+	}
+	if got := c.FilterValue(); got != "County Sheriff" {
+		t.Errorf("FilterValue() = %q, want %q", got, "County Sheriff")
+	}
+}

@@ -13,7 +13,9 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody) string {
 
 	// Title for Election Administration section
 	sections = append(sections, sectionTitleStyle("Election Administration"))
-	sections = append(sections, fieldValueStyle(admin.Name))
+	if admin.Name != "" {
+		sections = append(sections, fieldValueStyle(admin.Name))
+	}
 
 	// Append URLs if they exist
 	urlFields := []struct {
@@ -58,21 +60,28 @@ func formatElectionAdministration(admin api.ElectionAdministrationBody) string {
 	}
 
 	// Election Officials
-	if len(admin.ElectionOfficials) > 0 {
-		sections = append(sections, sectionTitleStyle("Election Officials"))
-		for _, official := range admin.ElectionOfficials {
-			officialInfo := []string{fieldValueStyle(official.Name)}
-			if official.Title != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(official.Title)))
-			}
-			if official.OfficePhoneNumber != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(official.OfficePhoneNumber)))
-			}
-			if official.EmailAddress != "" {
-				officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(official.EmailAddress)))
-			}
-			sections = append(sections, strings.Join(officialInfo, ", "))
+	var officialLines []string
+	for _, official := range admin.ElectionOfficials {
+		var officialInfo []string
+		if official.Name != "" {
+			officialInfo = append(officialInfo, fieldValueStyle(official.Name))
 		}
+		if official.Title != "" {
+			officialInfo = append(officialInfo, fmt.Sprintf("Title: %s", fieldValueStyle(official.Title)))
+		}
+		if official.OfficePhoneNumber != "" {
+			officialInfo = append(officialInfo, fmt.Sprintf("Office Phone: %s", fieldValueStyle(official.OfficePhoneNumber)))
+		}
+		if official.EmailAddress != "" {
+			officialInfo = append(officialInfo, fmt.Sprintf("Email: %s", fieldValueStyle(official.EmailAddress)))
+		}
+		if len(officialInfo) > 0 {
+			officialLines = append(officialLines, strings.Join(officialInfo, ", "))
+		}
+	}
+	if len(officialLines) > 0 {
+		sections = append(sections, sectionTitleStyle("Election Officials"))
+		sections = append(sections, officialLines...)
 	}
 
 	return strings.Join(sections, "\n")
@@ -93,7 +102,11 @@ func formatStateResource(state api.State) string {
 	stateDisplay = append(stateDisplay, formatElectionAdministration(state.ElectionAdministrationBody))
 
 	if state.LocalJurisdiction != nil {
-		stateDisplay = append(stateDisplay, lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render("Local Jurisdiction: "+state.LocalJurisdiction.Name))
+		header := "Local Jurisdiction"
+		if state.LocalJurisdiction.Name != "" {
+			header += ": " + state.LocalJurisdiction.Name
+		}
+		stateDisplay = append(stateDisplay, lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render(header))
 		stateDisplay = append(stateDisplay, formatElectionAdministration(state.LocalJurisdiction.ElectionAdministrationBody))
 	}
 
