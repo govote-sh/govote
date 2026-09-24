@@ -131,3 +131,24 @@ func TestPollingPlaceGetMapsUrl(t *testing.T) {
 		}
 	})
 }
+
+// Ballot measures may have no ballotTitle ("only where available"), which left
+// a blank, unfilterable row in the contests list.
+func TestContestTitleFallsBackToReferendumTitle(t *testing.T) {
+	c := Contest{Type: "Referendum", ReferendumTitle: "Question 1: Constitutional Amendment"}
+
+	if got := c.Title(); got != c.ReferendumTitle {
+		t.Errorf("Title() = %q, want %q", got, c.ReferendumTitle)
+	}
+	if got := c.FilterValue(); got != c.ReferendumTitle {
+		t.Errorf("FilterValue() = %q, want %q", got, c.ReferendumTitle)
+	}
+}
+
+func TestContestTitlePrefersBallotTitle(t *testing.T) {
+	c := Contest{BallotTitle: "Governor", ReferendumTitle: "ignored"}
+
+	if got := c.Title(); got != "Governor" {
+		t.Errorf("Title() = %q, want %q", got, "Governor")
+	}
+}

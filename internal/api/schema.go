@@ -139,12 +139,21 @@ type Contest struct {
 }
 
 func (c Contest) FilterValue() string {
-	return c.BallotTitle
+	return c.displayTitle()
 }
 
 // TODO: I wish I could truncate based on the terminal width, but I think that would require a global variable
 func (c Contest) Title() string {
-	return utils.EllipticalTruncate(c.BallotTitle, 80)
+	return utils.EllipticalTruncate(c.displayTitle(), 80)
+}
+
+// displayTitle falls back to ReferendumTitle: ballotTitle is only sent "where
+// available", and ballot measures may carry just a referendum title.
+func (c Contest) displayTitle() string {
+	if c.BallotTitle != "" {
+		return c.BallotTitle
+	}
+	return c.ReferendumTitle
 }
 
 func (c Contest) Description() string {

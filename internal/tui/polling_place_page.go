@@ -55,17 +55,7 @@ func (m model) viewPollingPlace() string {
 		voterServices = boldStyle("Voter Services: ") + fieldValueStyle(selectedPollingPlace.VoterServices)
 	}
 
-	// Start and end dates (if any)
-	var dates string
-	if selectedPollingPlace.StartDate != "" && selectedPollingPlace.EndDate != "" {
-		if selectedPollingPlace.StartDate == selectedPollingPlace.EndDate {
-			dates = fmt.Sprintf("%s: %s", boldStyle("Date"), fieldValueStyle(selectedPollingPlace.StartDate))
-		} else {
-			dates = fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), selectedPollingPlace.StartDate, selectedPollingPlace.EndDate)
-		}
-	} else {
-		dates = ""
-	}
+	dates := formatPollingDates(selectedPollingPlace.StartDate, selectedPollingPlace.EndDate)
 
 	// Latitude and Longitude (if any)
 	var coordinates string
@@ -151,4 +141,20 @@ func parsePollingHours(pollingHours string) [][2]string {
 		}
 	}
 	return result
+}
+
+// formatPollingDates renders whichever of the start/end dates the API sent.
+func formatPollingDates(start, end string) string {
+	boldStyle := lipgloss.NewStyle().Bold(true).Render
+	switch {
+	case start != "" && start == end:
+		return fmt.Sprintf("%s: %s", boldStyle("Date"), fieldValueStyle(start))
+	case start != "" && end != "":
+		return fmt.Sprintf("%s: %s → %s", boldStyle("Available Dates"), fieldValueStyle(start), fieldValueStyle(end))
+	case start != "":
+		return fmt.Sprintf("%s: %s", boldStyle("Available From"), fieldValueStyle(start))
+	case end != "":
+		return fmt.Sprintf("%s: %s", boldStyle("Available Until"), fieldValueStyle(end))
+	}
+	return ""
 }
